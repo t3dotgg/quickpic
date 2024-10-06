@@ -1,69 +1,86 @@
 "use client";
+import { useMemo, useState } from "react";
 
-import { useRef, useEffect } from "react";
+import { ChangeEvent } from "react";
 
-interface SVGCanvasProps {
-  width: number;
-  height: number;
-  svgContent: string;
+type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
+
+function scaleSvg(svgContent: string, scale: Scale) {
+  const parser = new DOMParser();
+  const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
+  const svgElement = svgDoc.documentElement;
+  const width = parseInt(svgElement.getAttribute("width") || "300");
+  const height = parseInt(svgElement.getAttribute("height") || "150");
+
+  const scaledWidth = width * scale;
+  const scaledHeight = height * scale;
+
+  svgElement.setAttribute("width", scaledWidth.toString());
+  svgElement.setAttribute("height", scaledHeight.toString());
+
+  return new XMLSerializer().serializeToString(svgDoc);
 }
 
-const SVGCanvas: React.FC<SVGCanvasProps> = ({ width, height, svgContent }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+function useSvgConverter(props: {
+  canvas: HTMLCanvasElement | null;
+  svgContent: string;
+  scale: Scale;
+  fileName?: string;
+  imageMetadata: { width: number; height: number; name: string };
+}) {
+  const { width, height, scaledSvg } = useMemo(() => {
+    const scaledSvg = scaleSvg(props.svgContent, props.scale);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0);
+    return {
+      width: props.imageMetadata.width * props.scale,
+      height: props.imageMetadata.height * props.scale,
+      scaledSvg,
     };
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
+  }, [props.svgContent, props.scale, props.imageMetadata]);
+
+  console.log("Is scaling working?", width, height);
+
+  const convertToPng = async () => {
+    console.log("CANVAS?", props.canvas);
+    const ctx = props.canvas?.getContext("2d");
+    if (!ctx) throw new Error("Failed to get canvas context");
 
     // Trigger a "save image" of the resulting canvas content
     const saveImage = () => {
-      if (canvas) {
-        const dataURL = canvas.toDataURL("image/png");
+      if (props.canvas) {
+        const dataURL = props.canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.href = dataURL;
-        const svgFileName = svgContent.match(/<svg[^>]*\stitle="([^"]*)"/) || [
-          "",
-          "canvas_image",
-        ];
-        link.download = `${svgFileName[1]}.png`;
+        const svgFileName = props.imageMetadata.name ?? "svg_converted";
+        link.download = `${svgFileName}.png`;
         link.click();
       }
     };
 
+    const img = new Image();
     // Call saveImage after the image has been drawn
     img.onload = () => {
       ctx.drawImage(img, 0, 0);
       saveImage();
     };
-  }, [svgContent]);
 
-  return <canvas ref={canvasRef} width={width} height={height} hidden />;
-};
-
-import { useState, ChangeEvent } from "react";
-
-// Scale width and height so longer dimension is 4000px
-const scaleDimensions = (width: number, height: number) => {
-  const maxDimension = 2000;
-  const scale = Math.max(width, height) / maxDimension;
-  return {
-    width: width / scale,
-    height: height / scale,
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`;
   };
-};
 
-const SVGUploader: React.FC = () => {
+  return {
+    convertToPng,
+    canvasProps: { width: width, height: height },
+  };
+}
+
+export const useFileUploader = () => {
   const [svgContent, setSvgContent] = useState<string>("");
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  const [imageMetadata, setImageMetadata] = useState<{
+    width: number;
+    height: number;
+    name: string;
+  } | null>(null);
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -79,45 +96,92 @@ const SVGUploader: React.FC = () => {
         const width = parseInt(svgElement.getAttribute("width") || "300");
         const height = parseInt(svgElement.getAttribute("height") || "150");
 
-        const scaledDimensions = scaleDimensions(width, height);
-
-        // Set SVG content to scaled dimensions
-        svgElement.setAttribute("width", scaledDimensions.width.toString());
-        svgElement.setAttribute("height", scaledDimensions.height.toString());
-        setDimensions(scaledDimensions);
-        setSvgContent(new XMLSerializer().serializeToString(svgDoc));
+        setSvgContent(content);
+        setImageMetadata({ width, height, name: file.name });
       };
       reader.readAsText(file);
     }
   };
 
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <input
-        type="file"
-        accept=".svg"
-        onChange={handleFileUpload}
-        className="border border-gray-300 p-2 rounded"
-      />
-      {svgContent && (
-        <SVGCanvas
-          width={dimensions.width}
-          height={dimensions.height}
-          svgContent={svgContent}
-        />
-      )}
-    </div>
-  );
+  return { svgContent, imageMetadata, handleFileUpload };
 };
 
-export function SVGTool() {
+import React from "react";
+
+interface SVGRendererProps {
+  svgContent: string;
+}
+
+const SVGRenderer: React.FC<SVGRendererProps> = ({ svgContent }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.innerHTML = svgContent;
+      const svgElement = containerRef.current.querySelector("svg");
+      if (svgElement) {
+        svgElement.setAttribute("width", "100%");
+        svgElement.setAttribute("height", "auto");
+      }
+    }
+  }, [svgContent]);
+
+  return <div ref={containerRef} />;
+};
+
+function SaveAsPngButton({
+  svgContent,
+  scale,
+  imageMetadata,
+}: {
+  svgContent: string;
+  scale: Scale;
+  imageMetadata: { width: number; height: number; name: string };
+}) {
+  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
+    null
+  );
+  const { convertToPng, canvasProps } = useSvgConverter({
+    canvas: canvasRef,
+    svgContent,
+    scale,
+    imageMetadata,
+  });
+
   return (
-    <div className="flex flex-col p-4 gap-4">
-      <p className="text-center">
-        This tool makes SVGs bigger. Upload an SVG below. It doesn&apos;t cost
-        money because that&apos;s dumb.
+    <div>
+      <canvas ref={setCanvasRef} {...canvasProps} hidden />
+      <button onClick={convertToPng}>Save as PNG</button>
+    </div>
+  );
+}
+
+export function SVGTool() {
+  const { svgContent, imageMetadata, handleFileUpload } = useFileUploader();
+
+  if (!imageMetadata)
+    return (
+      <div className="flex flex-col p-4 gap-4">
+        <p className="text-center">
+          This tool makes SVGs bigger. Upload an SVG below. It doesn&apos;t cost
+          money because that&apos;s dumb.
+        </p>
+        <input type="file" onChange={handleFileUpload} accept=".svg" />
+      </div>
+    );
+
+  return (
+    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+      <SVGRenderer svgContent={svgContent} />
+      <p>{imageMetadata.name}</p>
+      <p>
+        {imageMetadata.width}px x {imageMetadata.height}px
       </p>
-      <SVGUploader />
+      <SaveAsPngButton
+        svgContent={svgContent}
+        scale={64}
+        imageMetadata={imageMetadata}
+      />
     </div>
   );
 }
