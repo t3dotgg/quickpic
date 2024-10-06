@@ -9,18 +9,20 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "babel-plugin-react-compiler": "0.0.0-experimental-734b737-20241003",
+    "next": "15.0.0-canary.179",
+    "next-plausible": "^3.12.2",
     "react": "19.0.0-rc-2d16326d-20240930",
-    "react-dom": "19.0.0-rc-2d16326d-20240930",
-    "next": "15.0.0-canary.179"
+    "react-dom": "19.0.0-rc-2d16326d-20240930"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "15.0.0-canary.179",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "15.0.0-canary.179"
+    "typescript": "^5"
   }
 }

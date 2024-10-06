@@ -1,4 +1,5 @@
 "use client";
+import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
 
 import { ChangeEvent } from "react";
@@ -155,11 +156,16 @@ function SaveAsPngButton({
     imageMetadata,
   });
 
+  const plausible = usePlausible();
+
   return (
     <div>
       <canvas ref={setCanvasRef} {...canvasProps} hidden />
       <button
-        onClick={convertToPng}
+        onClick={() => {
+          plausible("convert-svg-to-png");
+          convertToPng();
+        }}
         className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
       >
         Save as PNG
