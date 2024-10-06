@@ -17,6 +17,9 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "QuickPic SVG to PNG converter",
   description: "Convert SVG to PNG without going insane, scale them up as well",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
