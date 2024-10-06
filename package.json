@@ -12,6 +12,7 @@
     "babel-plugin-react-compiler": "0.0.0-experimental-734b737-20241003",
     "next": "15.0.0-canary.179",
     "next-plausible": "^3.12.2",
+    "posthog-js": "^1.166.1",
     "react": "19.0.0-rc-2d16326d-20240930",
     "react-dom": "19.0.0-rc-2d16326d-20240930"
   },
