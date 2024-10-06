@@ -1,4 +1,4 @@
-import { SVGTool } from "./tool";
+import { SVGTool } from "./svg-tool";
 
 export const metadata = {
   title: "SVG to PNG converter - QuickPic",
