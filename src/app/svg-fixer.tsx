@@ -52,7 +52,9 @@ function useSvgConverter(props: {
         const link = document.createElement("a");
         link.href = dataURL;
         const svgFileName = props.imageMetadata.name ?? "svg_converted";
-        link.download = `${svgFileName}.png`;
+
+        // Remove the .svg extension
+        link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
         link.click();
       }
     };
@@ -103,7 +105,12 @@ export const useFileUploader = () => {
     }
   };
 
-  return { svgContent, imageMetadata, handleFileUpload };
+  const cancel = () => {
+    setSvgContent("");
+    setImageMetadata(null);
+  };
+
+  return { svgContent, imageMetadata, handleFileUpload, cancel };
 };
 
 import React from "react";
@@ -151,13 +158,21 @@ function SaveAsPngButton({
   return (
     <div>
       <canvas ref={setCanvasRef} {...canvasProps} hidden />
-      <button onClick={convertToPng}>Save as PNG</button>
+      <button
+        onClick={convertToPng}
+        className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
+      >
+        Save as PNG
+      </button>
     </div>
   );
 }
 
 export function SVGTool() {
-  const { svgContent, imageMetadata, handleFileUpload } = useFileUploader();
+  const { svgContent, imageMetadata, handleFileUpload, cancel } =
+    useFileUploader();
+
+  const [scale, setScale] = useState<Scale>(1);
 
   if (!imageMetadata)
     return (
@@ -175,13 +190,40 @@ export function SVGTool() {
       <SVGRenderer svgContent={svgContent} />
       <p>{imageMetadata.name}</p>
       <p>
-        {imageMetadata.width}px x {imageMetadata.height}px
+        Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
-      <SaveAsPngButton
-        svgContent={svgContent}
-        scale={64}
-        imageMetadata={imageMetadata}
-      />
+      <p>
+        Scaled size: {imageMetadata.width * scale}px x{" "}
+        {imageMetadata.height * scale}px
+      </p>
+      <div className="flex gap-2">
+        {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
+          <button
+            key={value}
+            onClick={() => setScale(value)}
+            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+              scale === value
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            }`}
+          >
+            {value}x
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <SaveAsPngButton
+          svgContent={svgContent}
+          scale={scale}
+          imageMetadata={imageMetadata}
+        />
+        <button
+          onClick={cancel}
+          className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }
