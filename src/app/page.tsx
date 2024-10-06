@@ -6,6 +6,16 @@ export default function Home() {
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <SVGTool />
       </main>
+      <footer className="row-start-3 text-center text-sm text-gray-500">
+        <a
+          href="https://github.com/t3dotgg/quickpic"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline"
+        >
+          View on GitHub
+        </a>
+      </footer>
     </div>
   );
 }
