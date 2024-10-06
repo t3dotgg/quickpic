@@ -48,7 +48,7 @@ export async function GenerateImage(params: {
         >
           <span style={{ fontWeight: 600 }}>{params.title}</span>
           <span style={{ fontSize: 40, fontWeight: 300 }}>
-            {params.description ?? "Quick and free tools for pictures."}
+            {params.description}
           </span>
         </div>
       </div>
