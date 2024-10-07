@@ -33,7 +33,7 @@ export const SquareTool: React.FC = () => {
   const handleBackgroundColorChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const color = event.target.value as "black" | "white";
+    const color = event.target.value as "black" | "white" | "red";
     setBackgroundColor(color);
   };
 
@@ -166,6 +166,16 @@ export const SquareTool: React.FC = () => {
             className="form-radio text-blue-600"
           />
           <span className="ml-2">Black Background</span>
+        </label>
+        <label className="inline-flex items-center">
+          <input
+            type="radio"
+            value="red"
+            checked={backgroundColor === "red"}
+            onChange={handleBackgroundColorChange}
+            className="form-radio text-blue-600"
+          />
+          <span className="ml-2">Red Background</span>
         </label>
       </div>
 
