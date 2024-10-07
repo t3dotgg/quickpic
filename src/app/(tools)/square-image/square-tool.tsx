@@ -167,6 +167,16 @@ export const SquareTool: React.FC = () => {
           />
           <span className="ml-2">Black Background</span>
         </label>
+        <label className="inline-flex items-center">
+          <input
+            type="radio"
+            value="red"
+            checked={backgroundColor === "red"}
+            onChange={handleBackgroundColorChange}
+            className="form-radio text-blue-600"
+          />
+          <span className="ml-2">Red Background</span>
+        </label>
       </div>
 
       <div className="flex gap-2">
