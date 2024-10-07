@@ -123,14 +123,17 @@ const ImageRenderer: React.FC<ImageRendererProps> = ({ imageContent, radius, bac
       const imgElement = containerRef.current.querySelector("img");
       if (imgElement) {
         imgElement.style.borderRadius = `${radius}px`;
-        imgElement.style.backgroundColor = background;
       }
     }
-  }, [imageContent, radius, background]);
+  }, [imageContent, radius]);
 
   return (
-    <div ref={containerRef} className="max-w-full max-h-full">
-      <img src={imageContent} alt="Preview" className="rounded-lg" style={{ width: "100%", height: "auto" }} />
+    <div ref={containerRef} className="relative max-w-full max-h-full">
+      <div
+        className="absolute inset-0"
+        style={{ backgroundColor: background, borderRadius: 0 }}
+      />
+      <img src={imageContent} alt="Preview" className="relative rounded-lg" style={{ width: "100%", height: "auto" }} />
     </div>
   );
 };
