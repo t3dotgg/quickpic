@@ -22,11 +22,11 @@ function useImageConverter(props: {
   fileName?: string;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const { width, height, imageContent } = useMemo(() => {
+  const { width, height } = useMemo(() => {
     return {
       width: props.imageMetadata.width,
       height: props.imageMetadata.height,
-      imageContent: props.imageContent,
+      
     };
   }, [props.imageContent, props.imageMetadata]);
 
