@@ -44,10 +44,8 @@ function useSvgConverter(props: {
     };
   }, [props.svgContent, props.scale, props.imageMetadata]);
 
-  console.log("Is scaling working?", width, height);
 
   const convertToPng = async () => {
-    console.log("CANVAS?", props.canvas);
     const ctx = props.canvas?.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
