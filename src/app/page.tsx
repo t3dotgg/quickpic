@@ -24,9 +24,8 @@ export default function Home() {
           Square image generator
         </Link>
         <Link href="/rounded-border" className="text-blue-500 hover:underline">
-          Square image to Rounded Square converter
+          Corner Rounder
         </Link>
-        
       </main>
       <footer className="text-center text-sm text-gray-500 mt-8">
         <a
