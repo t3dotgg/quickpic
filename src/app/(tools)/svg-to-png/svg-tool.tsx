@@ -4,11 +4,6 @@ import { useMemo, useState } from "react";
 
 import { ChangeEvent } from "react";
 
-export const metadata = {
-  title: "SVG to PNG converter - QuickPic",
-  description: "Convert SVGs to PNGs. Also makes them bigger.",
-};
-
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
 function scaleSvg(svgContent: string, scale: Scale) {
@@ -43,7 +38,6 @@ function useSvgConverter(props: {
       scaledSvg,
     };
   }, [props.svgContent, props.scale, props.imageMetadata]);
-
 
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d");
