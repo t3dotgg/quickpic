@@ -13,7 +13,7 @@ export const size = {
 // Image generation
 export default async function Image() {
   return await GenerateImage({
-    title: "Square ➡️ Rounded Square",
-    description: "The only simple way to convert a square image to a rounded square.",
+    title: "Corner Rounder",
+    description: "Round the corners of an image. For free.",
   });
 }

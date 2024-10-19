@@ -4,12 +4,6 @@ import { useMemo, useState } from "react";
 import { ChangeEvent } from "react";
 import React from "react";
 
-export const metadata = {
-  title: "Image ➡️ Rounded Corner Converter - QuickPic",
-  description:
-    "Convert images to rounded corner PNGs. Customize corner radius and background options.",
-};
-
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
 type BackgroundOption = "white" | "black" | "transparent";
@@ -26,7 +20,6 @@ function useImageConverter(props: {
     return {
       width: props.imageMetadata.width,
       height: props.imageMetadata.height,
-      
     };
   }, [props.imageContent, props.imageMetadata]);
 
@@ -92,7 +85,11 @@ export const useFileUploader = () => {
         const content = e.target?.result as string;
         const img = new Image();
         img.onload = () => {
-          setImageMetadata({ width: img.width, height: img.height, name: file.name });
+          setImageMetadata({
+            width: img.width,
+            height: img.height,
+            name: file.name,
+          });
           setImageContent(content);
         };
         img.src = content;
@@ -115,7 +112,11 @@ interface ImageRendererProps {
   background: BackgroundOption;
 }
 
-const ImageRenderer: React.FC<ImageRendererProps> = ({ imageContent, radius, background }) => {
+const ImageRenderer: React.FC<ImageRendererProps> = ({
+  imageContent,
+  radius,
+  background,
+}) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -133,7 +134,12 @@ const ImageRenderer: React.FC<ImageRendererProps> = ({ imageContent, radius, bac
         className="absolute inset-0"
         style={{ backgroundColor: background, borderRadius: 0 }}
       />
-      <img src={imageContent} alt="Preview" className="relative rounded-lg" style={{ width: "100%", height: "auto" }} />
+      <img
+        src={imageContent}
+        alt="Preview"
+        className="relative rounded-lg"
+        style={{ width: "100%", height: "auto" }}
+      />
     </div>
   );
 };
@@ -149,7 +155,9 @@ function SaveAsPngButton({
   background: BackgroundOption;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(null);
+  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
+    null
+  );
   const { convertToPng, canvasProps } = useImageConverter({
     canvas: canvasRef,
     imageContent,
@@ -187,7 +195,8 @@ export function RoundedTool() {
     return (
       <div className="flex flex-col p-4 gap-4">
         <p className="text-center">
-          Convert images to rounded corner PNGs with custom radius and background options. (100% free btw.)
+          Convert images to rounded corner PNGs with custom radius and
+          background options. (100% free btw.)
         </p>
         <div className="flex justify-center">
           <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
@@ -205,7 +214,11 @@ export function RoundedTool() {
 
   return (
     <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
-      <ImageRenderer imageContent={imageContent} radius={radius} background={background} />
+      <ImageRenderer
+        imageContent={imageContent}
+        radius={radius}
+        background={background}
+      />
       <p>{imageMetadata.name}</p>
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
@@ -226,19 +239,21 @@ export function RoundedTool() {
         ))}
       </div>
       <div className="flex gap-2">
-        {(["white", "black", "transparent"] as BackgroundOption[]).map((option) => (
-          <button
-            key={option}
-            onClick={() => setBackground(option)}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              background === option
-                ? "bg-purple-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {option.charAt(0).toUpperCase() + option.slice(1)}
-          </button>
-        ))}
+        {(["white", "black", "transparent"] as BackgroundOption[]).map(
+          (option) => (
+            <button
+              key={option}
+              onClick={() => setBackground(option)}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                background === option
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+              }`}
+            >
+              {option.charAt(0).toUpperCase() + option.slice(1)}
+            </button>
+          )
+        )}
       </div>
       <div className="flex gap-2">
         <SaveAsPngButton

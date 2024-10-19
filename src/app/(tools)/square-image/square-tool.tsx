@@ -3,11 +3,6 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
 
-export const metadata = {
-  title: "Square Image Creator - QuickPic",
-  description: "Create square images with custom backgrounds. Fast and free.",
-};
-
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [backgroundColor, setBackgroundColor] = useState<"black" | "white">(

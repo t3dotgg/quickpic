@@ -1,8 +1,8 @@
 import { RoundedTool } from "./rounded-tool";
 
 export const metadata = {
-  title: "Square ➡️ Rounded Square converter - QuickPic",
-  description: "Convert Squares to Rounded Squares. Also makes them favicons.",
+  title: "Corner Rounder - QuickPic",
+  description: "Round corners on an image (for free because duh)",
 };
 
 export default function RoundedToolPage() {
