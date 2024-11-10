@@ -1,13 +1,13 @@
-/** @type {import('next').NextConfig} */  
-import { type NextConfig } from 'next'; 
+/** @type {import('next').NextConfig} */
+import { type NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     turbo: {
       rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.tsx',
+        "*.svg": {
+          loaders: ["@svgr/webpack"],
+          as: "*.tsx",
         },
       },
     },
@@ -17,6 +17,6 @@ const nextConfig: NextConfig = {
     config.optimization.minimize = false; // Helps with the BABEL deoptimization
     return config;
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

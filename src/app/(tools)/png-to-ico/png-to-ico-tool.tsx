@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, type ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
 
 interface ImageMetadata {
@@ -184,12 +184,16 @@ function SaveAsIcoButton({
     imageMetadata,
   });
 
-  const plausible = usePlausible();
+  const plausible = usePlausible().bind("convert-image-to-ico");
   const [isConverting, setIsConverting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleClick = async () => {
-    plausible("convert-image-to-ico");
+    plausible("convert-image-to-ico", {
+      props: {
+        action: "convert",
+      },
+    });
     setIsConverting(true);
     setErrorMessage("");
     try {

@@ -26,7 +26,7 @@ export default function Home() {
         <Link href="/rounded-border" className="text-blue-500 hover:underline">
           Corner Rounder
         </Link>
-        <Link href="/png-to-ico" className="text-blue-500 hover:underline"> 
+        <Link href="/png-to-ico" className="text-blue-500 hover:underline">
           PNG to ICO
         </Link>
       </main>
