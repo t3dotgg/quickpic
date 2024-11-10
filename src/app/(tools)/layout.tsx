@@ -1,11 +1,13 @@
+import Image from "next/image";
 import Link from "next/link";
+import githubLogo from "@/app/assets/image/github-logo.png";
 
 function BackButton() {
   return (
-    <div className="fixed top-4 left-4 z-50">
+    <div className="fixed left-4 top-4 z-50">
       <Link
         href="/"
-        className="px-3 py-1 text-gray-400 hover:text-gray-200 text-sm font-medium rounded-md transition-colors duration-200 flex items-center gap-2"
+        className="flex aspect-square items-center gap-2 rounded-md border border-white/90 px-3 py-1 text-sm font-medium text-gray-200 transition-colors duration-200 hover:border-white/70 hover:text-gray-400"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -21,7 +23,6 @@ function BackButton() {
             d="M10 19l-7-7m0 0l7-7m-7 7h18"
           />
         </svg>
-        Back
       </Link>
     </div>
   );
@@ -33,18 +34,19 @@ export default function ToolsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col justify-between min-h-screen p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+    <div className="flex min-h-screen flex-col justify-between bg-gradient-to-b from-gray-900 via-[#300171] to-slate-900 p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
       <BackButton />
-      <main className="flex-grow flex flex-col items-center justify-center">
+      <main className="flex flex-grow flex-col items-center justify-center">
         {children}
       </main>
-      <footer className="text-center text-sm text-gray-500 mt-8">
+      <footer className="mt-8 flex justify-center">
         <a
           href="https://github.com/t3dotgg/quickpic"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:underline"
+          className="flex items-center gap-4 rounded-full bg-white px-4 py-2 text-sm text-gray-500 hover:underline"
         >
+          <Image src={githubLogo} alt="Github Logo" width={32} height={32} />
           View on GitHub
         </a>
       </footer>
