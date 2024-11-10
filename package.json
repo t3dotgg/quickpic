@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "check": "next lint && tsc --noEmit",
+    "check": "concurrently --names \"lint,typecheck,format\" --prefix-colors \"yellow,blue,green\" \"next lint\" \"tsc --noEmit\" \"pnpm run format:check\"",
     "dev": "next dev --turbo",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -28,6 +28,7 @@
     "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
+    "concurrently": "^9.1.0",
     "eslint": "^8",
     "eslint-config-next": "15.0.0-rc.1",
     "prettier": "^3.3.3",
