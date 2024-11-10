@@ -122,21 +122,21 @@ export const SquareTool: React.FC = () => {
         ref={inputRef}
       />
       {!imageMetadata ? (
-        <div className="flex flex-col p-4 gap-4">
+        <div className="flex flex-col gap-4 p-4">
           <p className="text-center">
             Create square images with custom backgrounds. Fast and free.
           </p>
           <div className="flex justify-center">
             <label
               onClick={() => inputRef.current?.click()}
-              className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
             >
               <span>Upload Image</span>
             </label>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+        <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
           {previewUrl && (
             <img src={previewUrl} alt="Preview" className="mb-4" />
           )}
@@ -178,7 +178,7 @@ export const SquareTool: React.FC = () => {
                 plausible("create-square-image");
                 handleSaveImage();
               }}
-              className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
+              className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
             >
               Save Image
             </button>
@@ -189,7 +189,7 @@ export const SquareTool: React.FC = () => {
                 setCanvasDataUrl(null);
                 setImageMetadata(null);
               }}
-              className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
+              className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
             >
               Cancel
             </button>

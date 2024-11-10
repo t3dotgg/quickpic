@@ -33,10 +33,10 @@ export default function ToolsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col min-h-screen p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+    <div className="flex min-h-screen flex-col p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
       <BackButton />
-      <main className="flex-1 h-full flex">{children}</main>
-      <footer className="text-center text-sm text-gray-500 mt-8">
+      <main className="flex h-full flex-1">{children}</main>
+      <footer className="mt-8 text-center text-sm text-gray-500">
         <a
           href="https://github.com/t3dotgg/quickpic"
           target="_blank"

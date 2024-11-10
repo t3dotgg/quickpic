@@ -1,4 +1,9 @@
-import React, { createContext, useState, ReactNode, RefObject } from "react";
+import React, {
+  createContext,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 
 interface FileDropProviderProps {
   children: ReactNode;
@@ -36,7 +41,7 @@ export const FileDropProvider: React.FC<FileDropProviderProps> = ({
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
 
-      if (!file) return
+      if (!file) return;
 
       // Check if the file type matches the allowed types in the input's accept attribute
       const accept = inputRef.current?.accept;
@@ -69,14 +74,14 @@ export const FileDropProvider: React.FC<FileDropProviderProps> = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`relative flex-1 flex items-center justify-center ${
+        className={`relative flex flex-1 items-center justify-center ${
           isDragging ? "opacity-50" : ""
         }`}
       >
         {children}
         {isDragging && (
-          <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 select-none border border-dashed rounded-md">
-            <p className="text-white text-lg font-bold">
+          <div className="absolute inset-0 z-50 flex select-none items-center justify-center rounded-md border border-dashed bg-black/70">
+            <p className="text-lg font-bold text-white">
               You can drop the file here
             </p>
           </div>

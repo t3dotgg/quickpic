@@ -157,7 +157,7 @@ function SaveAsPngButton({
   background: BackgroundOption;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null,);
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
   const { convertToPng, canvasProps } = useImageConverter({
     canvas: canvasRef,
     imageContent,
@@ -205,19 +205,19 @@ export function RoundedTool() {
         ref={inputRef}
       />
       {!imageMetadata ? (
-        <div className="flex flex-col p-4 gap-4">
+        <div className="flex flex-col gap-4 p-4">
           <p className="text-center">Round the corners of any image</p>
           <div className="flex justify-center">
             <label
               onClick={() => inputRef.current?.click()}
-              className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
             >
               <span>Upload Image</span>
             </label>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+        <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
           <ImageRenderer
             imageContent={imageContent}
             radius={radius}
@@ -232,7 +232,7 @@ export function RoundedTool() {
               <button
                 key={value}
                 onClick={() => setRadius(value)}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
                   radius === value
                     ? "bg-green-600 text-white"
                     : "bg-gray-200 text-gray-800 hover:bg-gray-300"
@@ -248,7 +248,7 @@ export function RoundedTool() {
                 <button
                   key={option}
                   onClick={() => setBackground(option)}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
                     background === option
                       ? "bg-purple-600 text-white"
                       : "bg-gray-200 text-gray-800 hover:bg-gray-300"
@@ -256,7 +256,7 @@ export function RoundedTool() {
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
-              )
+              ),
             )}
           </div>
           <div className="flex gap-2">
@@ -268,7 +268,7 @@ export function RoundedTool() {
             />
             <button
               onClick={cancel}
-              className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
+              className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
             >
               Cancel
             </button>
