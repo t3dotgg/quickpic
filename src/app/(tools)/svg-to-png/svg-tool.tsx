@@ -89,7 +89,7 @@ export const useFileUploader = () => {
     if (file) {
       if(file.type !== "image/svg+xml") {
         toast.error("Error uploading file!", {
-          description: "Only SVG's are supported.",
+          description: "Only SVGs are supported.",
         });
 
         return;
