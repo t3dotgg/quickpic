@@ -5,7 +5,8 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { type ChangeEvent } from "react";
 
-import { AnimatedScaleSelector } from "./components/animated-scale-selector";
+import { UploadBox } from "@/components/shared/upload-box";
+import { OptionSelector } from "@/components/shared/option-selector";
 
 export type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -182,37 +183,12 @@ export function SVGTool() {
 
   if (!imageMetadata)
     return (
-      <div className="flex flex-col items-center justify-center gap-4 p-4">
-        <p className="text-center text-white">
-          Make SVGs into PNGs. Also makes them bigger. (100% free btw.)
-        </p>
-        <div className="flex w-72 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-white/30 bg-white/10 p-6 backdrop-blur-sm">
-          <svg
-            className="h-8 w-8 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-            />
-          </svg>
-          <p className="text-sm text-gray-400">Drag and Drop</p>
-          <p className="text-sm text-gray-500">or</p>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-            <span>Upload SVG</span>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              accept=".svg"
-              className="hidden"
-            />
-          </label>
-        </div>
-      </div>
+      <UploadBox
+        title="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
+        description="Upload SVG"
+        accept=".svg"
+        onChange={handleFileUpload}
+      />
     );
 
   return (
@@ -243,10 +219,12 @@ export function SVGTool() {
       </div>
 
       {/* Scale Controls */}
-      <AnimatedScaleSelector
-        scales={[1, 2, 4, 8, 16, 32, 64]}
-        selectedScale={scale}
+      <OptionSelector
+        title="Scale Factor"
+        options={[1, 2, 4, 8, 16, 32, 64]}
+        selected={scale}
         onChange={setScale}
+        formatOption={(value) => `${value}×`}
       />
 
       {/* Action Buttons */}

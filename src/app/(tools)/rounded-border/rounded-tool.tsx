@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import React from "react";
+import { UploadBox } from "@/components/shared/upload-box";
+import { OptionSelector } from "@/components/shared/option-selector";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -195,80 +197,64 @@ export function RoundedTool() {
     "transparent",
   );
 
-  if (!imageMetadata)
+  if (!imageMetadata) {
     return (
-      <div className="flex flex-col gap-4 p-4">
-        <p className="text-center">Round the corners of any image</p>
-        <div className="flex justify-center">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-            <span>Upload Image</span>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              accept="image/*"
-              className="hidden"
-            />
-          </label>
-        </div>
-      </div>
+      <UploadBox
+        title="Add rounded borders to your images. Quick and easy."
+        description="Upload Image"
+        accept="image/*"
+        onChange={handleFileUpload}
+      />
     );
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
-      <ImageRenderer
-        imageContent={imageContent}
-        radius={radius}
-        background={background}
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
+      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
+        <ImageRenderer
+          imageContent={imageContent}
+          radius={radius}
+          background={background}
+        />
+        <p className="text-lg font-medium text-white/80">{imageMetadata.name}</p>
+      </div>
+
+      <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
+        <span className="text-sm text-white/60">Original Size</span>
+        <span className="font-medium text-white">
+          {imageMetadata.width} × {imageMetadata.height}
+        </span>
+      </div>
+
+      <OptionSelector
+        title="Border Radius"
+        options={[2, 4, 8, 16, 32, 64]}
+        selected={radius}
+        onChange={setRadius}
+        formatOption={(value) => `${value}px`}
       />
-      <p>{imageMetadata.name}</p>
-      <p>
-        Original size: {imageMetadata.width}px x {imageMetadata.height}px
-      </p>
-      <div className="flex gap-2">
-        {([2, 4, 8, 16, 32, 64] as Radius[]).map((value) => (
-          <button
-            key={value}
-            onClick={() => setRadius(value)}
-            className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-              radius === value
-                ? "bg-green-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {value}px
-          </button>
-        ))}
-      </div>
-      <div className="flex gap-2">
-        {(["white", "black", "transparent"] as BackgroundOption[]).map(
-          (option) => (
-            <button
-              key={option}
-              onClick={() => setBackground(option)}
-              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                background === option
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
-            >
-              {option.charAt(0).toUpperCase() + option.slice(1)}
-            </button>
-          ),
-        )}
-      </div>
-      <div className="flex gap-2">
+
+      <OptionSelector
+        title="Background"
+        options={["white", "black", "transparent"]}
+        selected={background}
+        onChange={setBackground}
+        formatOption={(option) => option.charAt(0).toUpperCase() + option.slice(1)}
+      />
+
+      <div className="flex gap-3">
+        <button
+          onClick={cancel}
+          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
+        >
+          Cancel
+        </button>
         <SaveAsPngButton
           imageContent={imageContent}
           radius={radius}
           background={background}
           imageMetadata={imageMetadata}
         />
-        <button
-          onClick={cancel}
-          className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
-        >
-          Cancel
-        </button>
       </div>
     </div>
   );
