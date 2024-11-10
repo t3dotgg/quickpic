@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, type ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
@@ -9,6 +9,7 @@ export const SquareTool: React.FC = () => {
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
     "black" | "white"
   >("squareTool_backgroundColor", "white");
+
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
@@ -27,7 +28,7 @@ export const SquareTool: React.FC = () => {
   };
 
   const handleBackgroundColorChange = (
-    event: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>,
   ) => {
     const color = event.target.value as "black" | "white";
     setBackgroundColor(color);
@@ -90,7 +91,7 @@ export const SquareTool: React.FC = () => {
                 0,
                 0,
                 previewSize,
-                previewSize
+                previewSize,
               );
               const previewDataUrl = previewCanvas.toDataURL("image/png");
               setPreviewUrl(previewDataUrl);
@@ -111,12 +112,12 @@ export const SquareTool: React.FC = () => {
 
   if (!imageMetadata) {
     return (
-      <div className="flex flex-col p-4 gap-4">
+      <div className="flex flex-col gap-4 p-4">
         <p className="text-center">
           Create square images with custom backgrounds. Fast and free.
         </p>
         <div className="flex justify-center">
-          <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
             <span>Upload Image</span>
             <input
               type="file"
@@ -131,7 +132,7 @@ export const SquareTool: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
       <p>{imageMetadata.name}</p>
       <p>
@@ -171,7 +172,7 @@ export const SquareTool: React.FC = () => {
             plausible("create-square-image");
             handleSaveImage();
           }}
-          className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
+          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
         >
           Save Image
         </button>
@@ -182,7 +183,7 @@ export const SquareTool: React.FC = () => {
             setCanvasDataUrl(null);
             setImageMetadata(null);
           }}
-          className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
+          className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
         >
           Cancel
         </button>
