@@ -39,10 +39,13 @@ export const FileDropProvider: React.FC<FileDropProviderProps> = ({
       // Check if the file type matches the allowed types in the input's accept attribute
       const accept = inputRef.current?.accept;
       const allowedTypes = accept ? accept.split(",") : [];
+      console.log("Current file type: ", file.type);
+      console.log("Allowed types: ", allowedTypes);
       const isFileTypeAllowed = allowedTypes.some((type) => {
         type = type.trim();
         return (
           file.type === type ||
+          (type === "image/*" && file.type.startsWith("image/")) ||
           (type.startsWith(".") && file.name.endsWith(type))
         );
       });
