@@ -1,15 +1,43 @@
 "use client";
 
-import React, { useState, useEffect, type ChangeEvent } from "react";
+import React, { useState, useEffect, type ChangeEvent, useRef } from "react";
 import { usePlausible } from "next-plausible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
+const ColorPicker = ({
+  onChange,
+  value,
+}: {
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  value: string;
+}) => {
+  const refInput = useRef<HTMLInputElement>(null);
+
+  return (
+    <>
+      {/** issue: input can't be styled */}
+      {/** https://stackoverflow.com/questions/48832432/rounded-input-type-color */}
+      <input
+        ref={refInput}
+        type="color"
+        className="invisible w-0"
+        value={value}
+        onChange={onChange}
+      />
+      <button
+        onClick={() => refInput.current?.click()}
+        className="size-8 shrink-0 rounded-full border border-white"
+        style={{ backgroundColor: value }}
+      />
+    </>
+  );
+};
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white"
-  >("squareTool_backgroundColor", "white");
-
+  const [backgroundColor, setBackgroundColor] = useLocalStorage<string>(
+    "squareTool_backgroundColor",
+    "white",
+  );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
@@ -30,7 +58,7 @@ export const SquareTool: React.FC = () => {
   const handleBackgroundColorChange = (
     event: ChangeEvent<HTMLInputElement>,
   ) => {
-    const color = event.target.value as "black" | "white";
+    const color = event.target.value;
     setBackgroundColor(color);
   };
 
@@ -163,6 +191,14 @@ export const SquareTool: React.FC = () => {
             className="form-radio text-blue-600"
           />
           <span className="ml-2">Black Background</span>
+        </label>
+        <label className="inline-flex items-center">
+          <ColorPicker
+            value={backgroundColor}
+            onChange={handleBackgroundColorChange}
+          />
+
+          <span className="ml-2">Custom Color Background</span>
         </label>
       </div>
 
