@@ -22,18 +22,26 @@ export const SquareTool: React.FC = () => {
 
   const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      if(!file.type.startsWith("image/")) {
-        toast.error("Error uploading file!", {
-          description: "Only Images are supported.",
-        });
 
-        return;
-      }
+    if (!file) {
+      toast.error("Error loading file!", {
+        description:
+          "Please try uploading the file again or pick a different one.",
+      });
 
-      setImageFile(file);
-      setImageMetadata({ width: 0, height: 0, name: file.name });
+      return;
     }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Error uploading file!", {
+        description: "Only Images are supported.",
+      });
+
+      return;
+    }
+
+    setImageFile(file);
+    setImageMetadata({ width: 0, height: 0, name: file.name });
   };
 
   const handleBackgroundColorChange = (

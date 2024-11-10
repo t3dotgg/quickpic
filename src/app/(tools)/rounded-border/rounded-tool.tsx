@@ -81,31 +81,39 @@ export const useFileUploader = () => {
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      if(!file.type.startsWith("image/")) {
-        toast.error("Error uploading file!", {
-          description: "Only Images are supported.",
-        });
 
-        return;
-      }
+    if (!file) {
+      toast.error("Error loading file!", {
+        description:
+          "Please try uploading the file again or pick a different one.",
+      });
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const img = new Image();
-        img.onload = () => {
-          setImageMetadata({
-            width: img.width,
-            height: img.height,
-            name: file.name,
-          });
-          setImageContent(content);
-        };
-        img.src = content;
-      };
-      reader.readAsDataURL(file);
+      return;
     }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Error uploading file!", {
+        description: "Only Images are supported.",
+      });
+
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        setImageMetadata({
+          width: img.width,
+          height: img.height,
+          name: file.name,
+        });
+        setImageContent(content);
+      };
+      img.src = content;
+    };
+    reader.readAsDataURL(file);
   };
 
   const cancel = () => {
