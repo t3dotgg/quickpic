@@ -2,9 +2,7 @@
 import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-
 import { type ChangeEvent } from "react";
-
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
 function scaleSvg(svgContent: string, scale: Scale) {
@@ -185,12 +183,17 @@ export function SVGTool() {
           Make SVGs into PNGs. Also makes them bigger. (100% free btw.)
         </p>
         <div className="flex justify-center">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-            <span>Upload SVG</span>
+          <label
+            htmlFor="svgInput"
+            tabIndex={0}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-orange-400"
+          >
+            Upload SVG
             <input
               type="file"
               onChange={handleFileUpload}
               accept=".svg"
+              id="svgInput"
               className="hidden"
             />
           </label>

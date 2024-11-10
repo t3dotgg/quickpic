@@ -117,13 +117,18 @@ export const SquareTool: React.FC = () => {
           Create square images with custom backgrounds. Fast and free.
         </p>
         <div className="flex justify-center">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-            <span>Upload Image</span>
+          <label
+            htmlFor="squareImageInput"
+            tabIndex={0}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-orange-400"
+          >
+            Upload Image
             <input
               type="file"
               onChange={handleImageUpload}
               accept="image/*"
               className="hidden"
+              id="squareImageInput"
             />
           </label>
         </div>

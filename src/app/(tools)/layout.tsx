@@ -43,7 +43,7 @@ export default function ToolsLayout({
           href="https://github.com/t3dotgg/quickpic"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:underline"
+          className="hover:underline text-white"
         >
           View on GitHub
         </a>
