@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 
 export const RemoveBackgroundTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -11,7 +11,7 @@ export const RemoveBackgroundTool: React.FC = () => {
     name: string;
   } | null>(null);
 
-  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setImageFile(file);
@@ -63,15 +63,19 @@ export const RemoveBackgroundTool: React.FC = () => {
               0,
               0,
               canvas.width,
-              canvas.height
+              canvas.height,
             );
             const data = imageData.data;
             for (let i = 0; i < data.length; i += 4) {
               const r = data[i];
               const g = data[i + 1];
               const b = data[i + 2];
-              if (r > 200 && g > 200 && b > 200) {
-                data[i + 3] = 0; // Set alpha to 0 (transparent)
+
+              // Check to ensure r, g and b are defined
+              if (r !== undefined && g !== undefined && b !== undefined) {
+                if (r > 200 && g > 200 && b > 200) {
+                  data[i + 3] = 0; // Set alpha to 0 (transparent)
+                }
               }
             }
             ctx.putImageData(imageData, 0, 0);
@@ -95,7 +99,7 @@ export const RemoveBackgroundTool: React.FC = () => {
                 0,
                 0,
                 previewSize,
-                previewSize
+                previewSize,
               );
               const previewDataUrl = previewCanvas.toDataURL("image/png");
               setPreviewUrl(previewDataUrl);
@@ -116,12 +120,12 @@ export const RemoveBackgroundTool: React.FC = () => {
 
   if (!imageMetadata) {
     return (
-      <div className="flex flex-col p-4 gap-4">
+      <div className="flex flex-col gap-4 p-4">
         <p className="text-center">
           Remove image backgrounds easily. Fast and free.
         </p>
         <div className="flex justify-center">
-          <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
             <span>Upload Image</span>
             <input
               type="file"
@@ -136,7 +140,7 @@ export const RemoveBackgroundTool: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
       <p>{imageMetadata.name}</p>
       <p>
@@ -146,7 +150,7 @@ export const RemoveBackgroundTool: React.FC = () => {
       <div className="flex gap-2">
         <button
           onClick={handleSaveImage}
-          className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
+          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
         >
           Save Image
         </button>
@@ -157,7 +161,7 @@ export const RemoveBackgroundTool: React.FC = () => {
             setCanvasDataUrl(null);
             setImageMetadata(null);
           }}
-          className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
+          className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
         >
           Cancel
         </button>
