@@ -40,36 +40,36 @@ function useSvgConverter(props: {
     };
   }, [props.svgContent, props.scale, props.imageMetadata]);
 
-  const imageSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`
+  const imageSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`;
 
   const convertToPng = () => {
-    return new Promise<{ dataURL: string, fileName: string }>(resolve => {
+    return new Promise<{ dataURL: string; fileName: string }>((resolve) => {
       const ctx = props.canvas?.getContext("2d");
-    if (!ctx) throw new Error("Failed to get canvas context");
+      if (!ctx) throw new Error("Failed to get canvas context");
 
-    const img = new Image();
+      const img = new Image();
 
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0);
-      
-      if (props.canvas === null) {
-        throw new Error("Canvas is null");
-      }
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0);
 
-      resolve({
-        dataURL: props.canvas.toDataURL("image/png"),
-        fileName: `${(props.imageMetadata.name ?? "svg_converted").replace(".svg", "")}-${props.scale}x.png`
-      })
-    };
+        if (props.canvas === null) {
+          throw new Error("Canvas is null");
+        }
 
-    img.src = imageSrc;
-    })
+        resolve({
+          dataURL: props.canvas.toDataURL("image/png"),
+          fileName: `${(props.imageMetadata.name ?? "svg_converted").replace(".svg", "")}-${props.scale}x.png`,
+        });
+      };
+
+      img.src = imageSrc;
+    });
   };
 
   return {
     convertToPng,
     canvasProps: { width: width, height: height },
-    imageSrc
+    imageSrc,
   };
 }
 
@@ -78,7 +78,7 @@ const downloadFile = (dataURL: string, fileName: string) => {
   link.href = dataURL;
   link.download = fileName;
   link.click();
-}
+};
 
 export const useFileUploader = () => {
   const [svgContent, setSvgContent] = useState<string>("");
@@ -120,7 +120,7 @@ export const useFileUploader = () => {
 
 type SVGRendererProps = {
   svgContent: string;
-}
+};
 
 const SVGRenderer = ({ svgContent }: SVGRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -150,8 +150,7 @@ const ConverterCanvas = ({
   imageMetadata: { width: number; height: number; name: string };
   onPngReady: (png: { dataURL: string; fileName: string }) => void;
 }) => {
-
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null)
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
 
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,
@@ -162,18 +161,22 @@ const ConverterCanvas = ({
 
   useEffect(() => {
     if (canvasRef !== null) {
-      convertToPng().then((png) => {
-        onPngReady(png);
-      }).catch((error) => {
-        console.error(error);
-      })
+      convertToPng()
+        .then((png) => {
+          onPngReady(png);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
   }, [canvasRef, svgContent, scale, imageMetadata, convertToPng, onPngReady]);
 
   return <canvas ref={setCanvasRef} {...canvasProps} hidden />;
-}
+};
 
-function SaveAsPngButton(props: { png: { dataURL: string; fileName: string } | undefined }) {
+function SaveAsPngButton(props: {
+  png: { dataURL: string; fileName: string } | undefined;
+}) {
   const plausible = usePlausible();
 
   return (
@@ -181,7 +184,6 @@ function SaveAsPngButton(props: { png: { dataURL: string; fileName: string } | u
       <button
         disabled={props.png === undefined}
         onClick={async () => {
-
           if (props.png === undefined) return;
 
           plausible("convert-svg-to-png");
@@ -200,7 +202,7 @@ export function SVGTool() {
     useFileUploader();
 
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
-  const [png, setPng] = useState<{ dataURL: string; fileName: string }>()
+  const [png, setPng] = useState<{ dataURL: string; fileName: string }>();
 
   if (!imageMetadata)
     return (
@@ -223,15 +225,19 @@ export function SVGTool() {
     );
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl max-w-sm">
-      <span className="text-sm font-bold p-2 border-b-2 border-b-black w-full">Uploaded SVG</span>
+    <div className="flex max-w-sm flex-col items-center justify-center gap-4 p-4 text-2xl">
+      <span className="w-full border-b-2 border-b-black p-2 text-sm font-bold">
+        Uploaded SVG
+      </span>
       <SVGRenderer svgContent={svgContent} />
       <p>{imageMetadata.name}</p>
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
 
-      <span className="text-sm font-bold p-2 border-b-2 border-b-black w-full">Preview PNG</span>
+      <span className="w-full border-b-2 border-b-black p-2 text-sm font-bold">
+        Preview PNG
+      </span>
       <img src={png?.dataURL} alt="Converted PNG" className="w-full" />
       <p>{png?.fileName}</p>
       <p>
@@ -254,9 +260,7 @@ export function SVGTool() {
         ))}
       </div>
       <div className="flex gap-2">
-        <SaveAsPngButton
-          png={png}
-        />
+        <SaveAsPngButton png={png} />
         <button
           onClick={cancel}
           className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
