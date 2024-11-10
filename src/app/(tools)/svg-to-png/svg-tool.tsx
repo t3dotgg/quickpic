@@ -164,9 +164,11 @@ const ConverterCanvas = ({
     if (canvasRef !== null) {
       convertToPng().then((png) => {
         onPngReady(png);
+      }).catch((error) => {
+        console.error(error);
       })
     }
-  }, [canvasRef, svgContent, scale, imageMetadata]);
+  }, [canvasRef, svgContent, scale, imageMetadata, convertToPng, onPngReady]);
 
   return <canvas ref={setCanvasRef} {...canvasProps} hidden />;
 }
@@ -230,7 +232,7 @@ export function SVGTool() {
       </p>
 
       <span className="text-sm font-bold p-2 border-b-2 border-b-black w-full">Preview PNG</span>
-      <img src={png?.dataURL} alt="Converted PNG" />
+      <img src={png?.dataURL} alt="Converted PNG" className="w-full" />
       <p>{png?.fileName}</p>
       <p>
         Scaled size: {imageMetadata.width * scale}px x{" "}
