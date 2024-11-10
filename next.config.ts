@@ -1,19 +1,22 @@
-import type { NextConfig } from "next";
-import { withPlausibleProxy } from "next-plausible";
-
+/** @type {import('next').NextConfig} */  
+import { type NextConfig } from 'next'; 
 const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
-    reactCompiler: true,
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.tsx',
+        },
+      },
+    },
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-};
 
-const outputConfig = withPlausibleProxy()(nextConfig);
+  webpack: (config) => {
+    config.optimization.minimize = false; // Helps with the BABEL deoptimization
+    return config;
+  },
+}
 
-export default outputConfig;
+module.exports = nextConfig
