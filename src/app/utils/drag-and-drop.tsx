@@ -23,7 +23,7 @@ export function DragAndDrop({
       className={`w-full max-w-lg h-44 flex flex-col justify-center items-center border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
         ${isDragActive
           ? "border-blue-500 bg-blue-50"
-          : "border-gray-700 hover:border-gray-600"
+          : "bordr-gray-400 dark:border-gray-700 hover:border-gray-500 hover:dark:border-gray-600"
         }`}
     >
       <input {...getInputProps()} />
