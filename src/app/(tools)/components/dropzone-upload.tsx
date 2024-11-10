@@ -1,26 +1,17 @@
 "use client";
 
 import { useDropzone } from "react-dropzone";
-import { Upload, X } from "lucide-react";
+import { Upload } from "lucide-react";
 
 interface DropzoneUploadProps {
-  accept?: Record<string, string[]>;
-  maxSize?: number; // in bytes
+  accept: Record<string, string[]>;
   onFilesAdded: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function DropzoneUpload(
-  {
-    accept = {
-      "image/*": [],
-    },
-    onFilesAdded,
-  }: DropzoneUploadProps = {
-    accept: { "image/*": [] },
-    maxSize: 5 * 1024 * 1024,
-    onFilesAdded: () => {},
-  }
-) {
+export default function DropzoneUpload({
+  accept,
+  onFilesAdded,
+}: DropzoneUploadProps) {
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       onFilesAdded({
