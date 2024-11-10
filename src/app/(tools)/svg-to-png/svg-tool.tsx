@@ -1,6 +1,6 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ChangeEvent } from "react";
 
@@ -39,38 +39,44 @@ function useSvgConverter(props: {
     };
   }, [props.svgContent, props.scale, props.imageMetadata]);
 
-  const convertToPng = async () => {
-    const ctx = props.canvas?.getContext("2d");
+  const imageSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`
+
+  const convertToPng = () => {
+    return new Promise<{ dataURL: string, fileName: string }>(resolve => {
+      const ctx = props.canvas?.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
-    // Trigger a "save image" of the resulting canvas content
-    const saveImage = () => {
-      if (props.canvas) {
-        const dataURL = props.canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = dataURL;
-        const svgFileName = props.imageMetadata.name ?? "svg_converted";
-
-        // Remove the .svg extension
-        link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
-        link.click();
-      }
-    };
-
     const img = new Image();
-    // Call saveImage after the image has been drawn
+
     img.onload = () => {
       ctx.drawImage(img, 0, 0);
-      saveImage();
+      
+      if (props.canvas === null) {
+        throw new Error("Canvas is null");
+      }
+
+      resolve({
+        dataURL: props.canvas.toDataURL("image/png"),
+        fileName: `${(props.imageMetadata.name ?? "svg_converted").replace(".svg", "")}-${props.scale}x.png`
+      })
     };
 
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`;
+    img.src = imageSrc;
+    })
   };
 
   return {
     convertToPng,
     canvasProps: { width: width, height: height },
+    imageSrc
   };
+}
+
+const downloadFile = (dataURL: string, fileName: string) => {
+  const link = document.createElement("a");
+  link.href = dataURL;
+  link.download = fileName;
+  link.click();
 }
 
 export const useFileUploader = () => {
@@ -111,16 +117,14 @@ export const useFileUploader = () => {
   return { svgContent, imageMetadata, handleFileUpload, cancel };
 };
 
-import React from "react";
-
-interface SVGRendererProps {
+type SVGRendererProps = {
   svgContent: string;
 }
 
-const SVGRenderer: React.FC<SVGRendererProps> = ({ svgContent }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+const SVGRenderer = ({ svgContent }: SVGRendererProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (containerRef.current) {
       containerRef.current.innerHTML = svgContent;
       const svgElement = containerRef.current.querySelector("svg");
@@ -134,18 +138,22 @@ const SVGRenderer: React.FC<SVGRendererProps> = ({ svgContent }) => {
   return <div ref={containerRef} />;
 };
 
-function SaveAsPngButton({
+const ConverterCanvas = ({
   svgContent,
   scale,
   imageMetadata,
+  onPngReady,
 }: {
   svgContent: string;
   scale: Scale;
   imageMetadata: { width: number; height: number; name: string };
-}) {
-  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
+  onPngReady: (png: { dataURL: string; fileName: string }) => void;
+}) => {
+
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(
     null
   );
+
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,
     svgContent,
@@ -153,15 +161,30 @@ function SaveAsPngButton({
     imageMetadata,
   });
 
+  useEffect(() => {
+    if (canvasRef !== null) {
+      convertToPng().then((png) => {
+        onPngReady(png);
+      })
+    }
+  }, [canvasRef, svgContent, scale, imageMetadata]);
+
+  return <canvas ref={setCanvasRef} {...canvasProps} hidden />;
+}
+
+function SaveAsPngButton(props: { png: { dataURL: string; fileName: string } | undefined }) {
   const plausible = usePlausible();
 
   return (
     <div>
-      <canvas ref={setCanvasRef} {...canvasProps} hidden />
       <button
-        onClick={() => {
+        disabled={props.png === undefined}
+        onClick={async () => {
+
+          if (props.png === undefined) return;
+
           plausible("convert-svg-to-png");
-          convertToPng();
+          downloadFile(props.png.dataURL, props.png.fileName);
         }}
         className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
       >
@@ -176,6 +199,7 @@ export function SVGTool() {
     useFileUploader();
 
   const [scale, setScale] = useState<Scale>(1);
+  const [png, setPng] = useState<{ dataURL: string; fileName: string }>()
 
   if (!imageMetadata)
     return (
@@ -198,12 +222,17 @@ export function SVGTool() {
     );
 
   return (
-    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl max-w-sm">
+      <span className="text-sm font-bold p-2 border-b-2 border-b-black w-full">Uploaded SVG</span>
       <SVGRenderer svgContent={svgContent} />
       <p>{imageMetadata.name}</p>
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
+
+      <span className="text-sm font-bold p-2 border-b-2 border-b-black w-full">Preview PNG</span>
+      <img src={png?.dataURL} alt="Converted PNG" />
+      <p>{png?.fileName}</p>
       <p>
         Scaled size: {imageMetadata.width * scale}px x{" "}
         {imageMetadata.height * scale}px
@@ -225,9 +254,7 @@ export function SVGTool() {
       </div>
       <div className="flex gap-2">
         <SaveAsPngButton
-          svgContent={svgContent}
-          scale={scale}
-          imageMetadata={imageMetadata}
+          png={png}
         />
         <button
           onClick={cancel}
@@ -236,6 +263,12 @@ export function SVGTool() {
           Cancel
         </button>
       </div>
+      <ConverterCanvas
+        svgContent={svgContent}
+        scale={scale}
+        imageMetadata={imageMetadata}
+        onPngReady={setPng}
+      />
     </div>
   );
 }

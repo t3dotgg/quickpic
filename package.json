@@ -25,6 +25,7 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   },
+  "packageManager": "pnpm@9.12.3",
   "pnpm": {
     "overrides": {
       "@types/react": "npm:types-react@19.0.0-rc.1",
