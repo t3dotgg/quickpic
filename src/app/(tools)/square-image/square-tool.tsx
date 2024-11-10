@@ -1,114 +1,91 @@
 "use client";
 
-import React, { useState, useEffect, type ChangeEvent } from "react";
-import { usePlausible } from "next-plausible";
+import { useState, useCallback } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+
+interface ImageMetadata {
+  width: number;
+  height: number;
+  name: string;
+  newName: string;
+}
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white"
-  >("squareTool_backgroundColor", "white");
-
+  const [imageMetadata, setImageMetadata] = useState<ImageMetadata | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
-  const plausible = usePlausible();
+  const [backgroundColor, setBackgroundColor] = useLocalStorage(
+    "squareTool_bgColor",
+    "#000000"
+  );
 
-  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImageMetadata({ width: 0, height: 0, name: file.name });
-    }
-  };
+  const handleImageUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-  const handleBackgroundColorChange = (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    const color = event.target.value as "black" | "white";
-    setBackgroundColor(color);
-  };
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
 
-  const handleSaveImage = () => {
-    if (canvasDataUrl && imageMetadata) {
-      const link = document.createElement("a");
-      link.href = canvasDataUrl;
-      const originalFileName = imageMetadata.name;
-      const fileNameWithoutExtension =
-        originalFileName.substring(0, originalFileName.lastIndexOf(".")) ||
-        originalFileName;
-      link.download = `${fileNameWithoutExtension}-squared.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  useEffect(() => {
-    if (imageFile) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          const maxDim = Math.max(img.width, img.height);
-          setImageMetadata((prevState) => ({
-            ...prevState!,
-            width: img.width,
-            height: img.height,
-          }));
-
-          const canvas = document.createElement("canvas");
-          canvas.width = maxDim;
-          canvas.height = maxDim;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.fillStyle = backgroundColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            const x = (maxDim - img.width) / 2;
-            const y = (maxDim - img.height) / 2;
-            ctx.drawImage(img, x, y);
-            const dataUrl = canvas.toDataURL("image/png");
-            setCanvasDataUrl(dataUrl);
-
-            // Create a smaller canvas for the preview
-            const previewCanvas = document.createElement("canvas");
-            const previewSize = 200; // Set desired preview size
-            previewCanvas.width = previewSize;
-            previewCanvas.height = previewSize;
-            const previewCtx = previewCanvas.getContext("2d");
-            if (previewCtx) {
-              previewCtx.drawImage(
-                canvas,
-                0,
-                0,
-                canvas.width,
-                canvas.height,
-                0,
-                0,
-                previewSize,
-                previewSize,
-              );
-              const previewDataUrl = previewCanvas.toDataURL("image/png");
-              setPreviewUrl(previewDataUrl);
-            }
-          }
-        };
-        if (typeof reader.result === "string") {
-          img.src = reader.result;
-        }
+      img.onload = () => {
+        setImageMetadata({
+          width: img.width,
+          height: img.height,
+          name: file.name,
+          newName: file.name.replace(/\.[^/.]+$/, "")
+        });
+        setPreviewUrl(objectUrl);
+        setImageFile(file);
       };
-      reader.readAsDataURL(imageFile);
-    } else {
-      setPreviewUrl(null);
-      setCanvasDataUrl(null);
-      setImageMetadata(null);
-    }
-  }, [imageFile, backgroundColor]);
+
+      img.src = objectUrl;
+    },
+    []
+  );
+
+  const handleNameChange = (newName: string) => {
+    setImageMetadata(prev => prev ? { ...prev, newName } : null);
+  };
+
+  const convertToSquare = useCallback(async () => {
+    if (!imageFile || !imageMetadata) return;
+
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(imageFile);
+
+    img.onload = () => {
+      const size = Math.max(img.width, img.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      // Fill background
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, size, size);
+
+      // Center the image
+      const x = (size - img.width) / 2;
+      const y = (size - img.height) / 2;
+      ctx.drawImage(img, x, y);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${imageMetadata.newName}-square.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    img.src = objectUrl;
+  }, [imageFile, backgroundColor, imageMetadata]);
 
   if (!imageMetadata) {
     return (
@@ -134,7 +111,16 @@ export const SquareTool: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
-      <p>{imageMetadata.name}</p>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={imageMetadata.newName}
+          onChange={(e) => handleNameChange(e.target.value)}
+          className="rounded border border-gray-600 bg-transparent p-2 text-foreground"
+          placeholder="Enter file name"
+        />
+        <span className="text-gray-400">-square.png</span>
+      </div>
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
@@ -142,52 +128,21 @@ export const SquareTool: React.FC = () => {
         Square size: {Math.max(imageMetadata.width, imageMetadata.height)}px x{" "}
         {Math.max(imageMetadata.width, imageMetadata.height)}px
       </p>
-
-      <div className="flex gap-2">
-        <label className="inline-flex items-center">
-          <input
-            type="radio"
-            value="white"
-            checked={backgroundColor === "white"}
-            onChange={handleBackgroundColorChange}
-            className="form-radio text-blue-600"
-          />
-          <span className="ml-2">White Background</span>
-        </label>
-        <label className="inline-flex items-center">
-          <input
-            type="radio"
-            value="black"
-            checked={backgroundColor === "black"}
-            onChange={handleBackgroundColorChange}
-            className="form-radio text-blue-600"
-          />
-          <span className="ml-2">Black Background</span>
-        </label>
+      <div className="flex items-center gap-2">
+        <label className="text-base">Background:</label>
+        <input
+          type="color"
+          value={backgroundColor}
+          onChange={(e) => setBackgroundColor(e.target.value)}
+          className="h-8 w-16 cursor-pointer rounded border-0 bg-transparent p-0"
+        />
       </div>
-
-      <div className="flex gap-2">
-        <button
-          onClick={() => {
-            plausible("create-square-image");
-            handleSaveImage();
-          }}
-          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
-        >
-          Save Image
-        </button>
-        <button
-          onClick={() => {
-            setImageFile(null);
-            setPreviewUrl(null);
-            setCanvasDataUrl(null);
-            setImageMetadata(null);
-          }}
-          className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
-        >
-          Cancel
-        </button>
-      </div>
+      <button
+        onClick={() => void convertToSquare()}
+        className="rounded bg-blue-600 px-4 py-2 text-base font-medium text-white transition-colors hover:bg-blue-700"
+      >
+        Convert to Square
+      </button>
     </div>
   );
 };

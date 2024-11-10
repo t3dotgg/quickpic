@@ -1,210 +1,123 @@
 "use client";
-import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
-import type { ChangeEvent } from "react";
+
+import { useState, useCallback } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import React from "react";
 
-type Radius = 2 | 4 | 8 | 16 | 32 | 64;
+type Radius = 8 | 16 | 32 | 64 | 128;
+type BackgroundOption = "transparent" | "white" | "black" | "custom";
 
-type BackgroundOption = "white" | "black" | "transparent";
+interface ImageMetadata {
+  width: number;
+  height: number;
+  name: string;
+  newName: string;
+}
 
-function useImageConverter(props: {
-  canvas: HTMLCanvasElement | null;
-  imageContent: string;
-  radius: Radius;
-  background: BackgroundOption;
-  fileName?: string;
-  imageMetadata: { width: number; height: number; name: string };
-}) {
-  const { width, height } = useMemo(() => {
-    return {
-      width: props.imageMetadata.width,
-      height: props.imageMetadata.height,
-    };
-  }, [props.imageMetadata]);
+export const RoundedTool: React.FC = () => {
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageMetadata, setImageMetadata] = useState<ImageMetadata | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 32);
+  const [background, setBackground] = useLocalStorage<BackgroundOption>(
+    "roundedTool_bg",
+    "transparent"
+  );
+  const [customColor, setCustomColor] = useLocalStorage(
+    "roundedTool_customColor",
+    "#ffffff"
+  );
 
-  const convertToPng = async () => {
-    const ctx = props.canvas?.getContext("2d");
-    if (!ctx) throw new Error("Failed to get canvas context");
+  const handleImageUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    const saveImage = () => {
-      if (props.canvas) {
-        const dataURL = props.canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = dataURL;
-        const imageFileName = props.imageMetadata.name ?? "image_converted";
-        link.download = `${imageFileName.replace(/\..+$/, "")}.png`;
-        link.click();
-      }
-    };
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      img.onload = () => {
+        setImageMetadata({
+          width: img.width,
+          height: img.height,
+          name: file.name,
+          newName: file.name.replace(/\.[^/.]+$/, "")
+        });
+        setPreviewUrl(objectUrl);
+        setImageFile(file);
+      };
+
+      img.src = objectUrl;
+    },
+    []
+  );
+
+  const handleNameChange = (newName: string) => {
+    setImageMetadata(prev => prev ? { ...prev, newName } : null);
+  };
+
+  const roundCorners = useCallback(async () => {
+    if (!imageFile || !imageMetadata) return;
 
     const img = new Image();
+    const objectUrl = URL.createObjectURL(imageFile);
+
     img.onload = () => {
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = props.background;
-      ctx.fillRect(0, 0, width, height);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      // Fill background if not transparent
+      if (background !== "transparent") {
+        ctx.fillStyle = background === "custom" ? customColor : background;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Create rounded rectangle path
       ctx.beginPath();
-      ctx.moveTo(props.radius, 0);
-      ctx.lineTo(width - props.radius, 0);
-      ctx.quadraticCurveTo(width, 0, width, props.radius);
-      ctx.lineTo(width, height - props.radius);
-      ctx.quadraticCurveTo(width, height, width - props.radius, height);
-      ctx.lineTo(props.radius, height);
-      ctx.quadraticCurveTo(0, height, 0, height - props.radius);
-      ctx.lineTo(0, props.radius);
-      ctx.quadraticCurveTo(0, 0, props.radius, 0);
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(canvas.width - radius, 0);
+      ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
+      ctx.lineTo(canvas.width, canvas.height - radius);
+      ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
+      ctx.lineTo(radius, canvas.height);
+      ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+      ctx.lineTo(0, radius);
+      ctx.quadraticCurveTo(0, 0, radius, 0);
       ctx.closePath();
+
+      // Clip and draw image
       ctx.clip();
-      ctx.drawImage(img, 0, 0, width, height);
-      saveImage();
+      ctx.drawImage(img, 0, 0);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${imageMetadata.newName}-rounded.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+
+      URL.revokeObjectURL(objectUrl);
     };
 
-    img.src = props.imageContent;
-  };
+    img.src = objectUrl;
+  }, [imageFile, radius, background, customColor, imageMetadata]);
 
-  return {
-    convertToPng,
-    canvasProps: { width: width, height: height },
-  };
-}
-
-export const useFileUploader = () => {
-  const [imageContent, setImageContent] = useState<string>("");
-
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
-
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const img = new Image();
-        img.onload = () => {
-          setImageMetadata({
-            width: img.width,
-            height: img.height,
-            name: file.name,
-          });
-          setImageContent(content);
-        };
-        img.src = content;
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const cancel = () => {
-    setImageContent("");
-    setImageMetadata(null);
-  };
-
-  return { imageContent, imageMetadata, handleFileUpload, cancel };
-};
-
-interface ImageRendererProps {
-  imageContent: string;
-  radius: Radius;
-  background: BackgroundOption;
-}
-
-const ImageRenderer: React.FC<ImageRendererProps> = ({
-  imageContent,
-  radius,
-  background,
-}) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (containerRef.current) {
-      const imgElement = containerRef.current.querySelector("img");
-      if (imgElement) {
-        imgElement.style.borderRadius = `${radius}px`;
-      }
-    }
-  }, [imageContent, radius]);
-
-  return (
-    <div ref={containerRef} className="relative max-h-full max-w-full">
-      <div
-        className="absolute inset-0"
-        style={{ backgroundColor: background, borderRadius: 0 }}
-      />
-      <img
-        src={imageContent}
-        alt="Preview"
-        className="relative rounded-lg"
-        style={{ width: "100%", height: "auto" }}
-      />
-    </div>
-  );
-};
-
-function SaveAsPngButton({
-  imageContent,
-  radius,
-  background,
-  imageMetadata,
-}: {
-  imageContent: string;
-  radius: Radius;
-  background: BackgroundOption;
-  imageMetadata: { width: number; height: number; name: string };
-}) {
-  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null,
-  );
-  const { convertToPng, canvasProps } = useImageConverter({
-    canvas: canvasRef,
-    imageContent,
-    radius,
-    background,
-    imageMetadata,
-  });
-
-  const plausible = usePlausible();
-
-  return (
-    <div>
-      <canvas ref={setCanvasRef} {...canvasProps} hidden />
-      <button
-        onClick={() => {
-          plausible("convert-image-to-png");
-          void convertToPng();
-        }}
-        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
-      >
-        Save as PNG
-      </button>
-    </div>
-  );
-}
-
-export function RoundedTool() {
-  const { imageContent, imageMetadata, handleFileUpload, cancel } =
-    useFileUploader();
-
-  const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
-  const [background, setBackground] = useLocalStorage<BackgroundOption>(
-    "roundedTool_background",
-    "transparent",
-  );
-
-  if (!imageMetadata)
+  if (!imageMetadata) {
     return (
       <div className="flex flex-col gap-4 p-4">
-        <p className="text-center">Round the corners of any image</p>
+        <p className="text-center">Round the corners of any image. Fast and free.</p>
         <div className="flex justify-center">
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
             <span>Upload Image</span>
             <input
               type="file"
-              onChange={handleFileUpload}
+              onChange={handleImageUpload}
               accept="image/*"
               className="hidden"
             />
@@ -212,64 +125,67 @@ export function RoundedTool() {
         </div>
       </div>
     );
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
-      <ImageRenderer
-        imageContent={imageContent}
-        radius={radius}
-        background={background}
-      />
-      <p>{imageMetadata.name}</p>
-      <p>
-        Original size: {imageMetadata.width}px x {imageMetadata.height}px
-      </p>
+    <div className="flex flex-col items-center justify-center gap-4 p-4">
+      {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4 max-w-xl" />}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={imageMetadata.newName}
+          onChange={(e) => handleNameChange(e.target.value)}
+          className="rounded border border-gray-600 bg-transparent p-2 text-foreground"
+          placeholder="Enter file name"
+        />
+        <span className="text-gray-400">-rounded.png</span>
+      </div>
       <div className="flex gap-2">
-        {([2, 4, 8, 16, 32, 64] as Radius[]).map((value) => (
+        {([8, 16, 32, 64, 128] as Radius[]).map((r) => (
           <button
-            key={value}
-            onClick={() => setRadius(value)}
-            className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-              radius === value
-                ? "bg-green-600 text-white"
+            key={r}
+            onClick={() => setRadius(r)}
+            className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+              radius === r
+                ? "bg-blue-600 text-white"
                 : "bg-gray-200 text-gray-800 hover:bg-gray-300"
             }`}
           >
-            {value}px
+            {r}px
           </button>
         ))}
       </div>
       <div className="flex gap-2">
-        {(["white", "black", "transparent"] as BackgroundOption[]).map(
-          (option) => (
+        {(["transparent", "white", "black", "custom"] as BackgroundOption[]).map(
+          (bg) => (
             <button
-              key={option}
-              onClick={() => setBackground(option)}
-              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                background === option
-                  ? "bg-purple-600 text-white"
+              key={bg}
+              onClick={() => setBackground(bg)}
+              className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+                background === bg
+                  ? "bg-blue-600 text-white"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
             >
-              {option.charAt(0).toUpperCase() + option.slice(1)}
+              {bg}
             </button>
-          ),
+          )
         )}
       </div>
-      <div className="flex gap-2">
-        <SaveAsPngButton
-          imageContent={imageContent}
-          radius={radius}
-          background={background}
-          imageMetadata={imageMetadata}
+      {background === "custom" && (
+        <input
+          type="color"
+          value={customColor}
+          onChange={(e) => setCustomColor(e.target.value)}
+          className="h-8 w-16 cursor-pointer rounded border-0 bg-transparent p-0"
         />
-        <button
-          onClick={cancel}
-          className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
-        >
-          Cancel
-        </button>
-      </div>
+      )}
+      <button
+        onClick={() => void roundCorners()}
+        className="rounded bg-blue-600 px-4 py-2 text-base font-medium text-white transition-colors hover:bg-blue-700"
+      >
+        Round Corners
+      </button>
     </div>
   );
-}
+};
