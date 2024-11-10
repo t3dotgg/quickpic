@@ -7,4 +7,4 @@ export const metadata = {
 
 export default function HeicToolPage() {
   return <HeicTool />;
-} 
+}

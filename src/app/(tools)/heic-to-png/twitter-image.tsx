@@ -15,4 +15,4 @@ export default async function Image() {
     title: "HEIC to PNG",
     description: "Convert Apple photos easily.",
   });
-} 
+}
