@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ChangeEvent } from "react";
 import React from "react";
 
-type Radius = 2 | 4 | 8 | 16 | 32 | 64;
+type Radius = number;
 
 type BackgroundOption = "white" | "black" | "transparent";
 
@@ -191,6 +191,17 @@ export function RoundedTool() {
   const [radius, setRadius] = useState<Radius>(2);
   const [background, setBackground] = useState<BackgroundOption>("transparent");
 
+  const maxRadius = useMemo(() => {
+    if (imageMetadata) {
+      return Math.min(imageMetadata.width, imageMetadata.height) / 2;
+    }
+    return 100;
+  }, [imageMetadata]);
+
+  const handleSliderChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setRadius(Number(event.target.value));
+  };
+
   if (!imageMetadata)
     return (
       <div className="flex flex-col p-4 gap-4">
@@ -220,8 +231,19 @@ export function RoundedTool() {
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
+      <div className="flex flex-col items-center gap-2 w-full max-w-md">
+        <input
+          type="range"
+          min="0"
+          max={maxRadius}
+          value={radius}
+          onChange={handleSliderChange}
+          className="w-full"
+        />
+        <p className="text-sm">Custom radius: {radius}px</p>
+      </div>
       <div className="flex gap-2">
-        {([2, 4, 8, 16, 32, 64] as Radius[]).map((value) => (
+        {[2, 4, 8, 16, 32, 64].map((value) => (
           <button
             key={value}
             onClick={() => setRadius(value)}
