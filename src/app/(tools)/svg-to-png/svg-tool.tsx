@@ -11,39 +11,45 @@ function parseSVGDimension(dim: string | null, defaultValue = 300) {
   if (!dim) return defaultValue;
 
   // regex to extract the numeric value and unit
-  const regex = /^([\d.]+)([a-z%]*)$/i;
-  const match = dim.trim().match(regex);
+  const regex = new RegExp(/^([\d.]+)([a-z%]*)$/i);
+  const match = regex.exec(dim.trim());
 
-  if (!match) {
-    console.warn(`Unable to parse dimension "${dim}". Using default value ${defaultValue}px.`);
+  if (!match || match.some((val) => !val)) {
+    console.warn(
+      `Unable to parse dimension "${dim}". Using default value ${defaultValue}px.`,
+    );
     return defaultValue;
   }
 
-  const value = parseFloat(match[1]);
-  const unit = match[2].toLowerCase();
+  const value = parseFloat(match[1] ?? defaultValue.toString());
+  const unit = (match[2] ?? "?").toLowerCase();
 
-  return Math.floor((() => {
-    switch (unit) {
-      case '':
-      case 'px':
-        return value;
-      case 'cm':
-        return value * 96 / 2.54; // 96 DPI assumed
-      case 'mm':
-        return value * 96 / 25.4;
-      case 'Q':
-        return value * 96 / 2.54 / 40;
-      case 'in':
-        return value * 96;
-      case 'pt':
-        return value * 96 / 72;
-      case 'pc':
-        return value * 96 / 6;
-      default:
-        console.warn(`Unsupported unit "${unit}". Using default value ${defaultValue}px.`);
-        return defaultValue;
-    }
-  })());
+  return Math.floor(
+    (() => {
+      switch (unit) {
+        case "":
+        case "px":
+          return value;
+        case "cm":
+          return (value * 96) / 2.54; // 96 DPI assumed
+        case "mm":
+          return (value * 96) / 25.4;
+        case "Q":
+          return (value * 96) / 2.54 / 40;
+        case "in":
+          return value * 96;
+        case "pt":
+          return (value * 96) / 72;
+        case "pc":
+          return (value * 96) / 6;
+        default:
+          console.warn(
+            `Unsupported unit "${unit}". Using default value ${defaultValue}px.`,
+          );
+          return defaultValue;
+      }
+    })(),
+  );
 }
 
 function scaleSvg(svgContent: string, scale: Scale) {
@@ -135,7 +141,10 @@ export const useFileUploader = () => {
         const svgDoc = parser.parseFromString(content, "image/svg+xml");
         const svgElement = svgDoc.documentElement;
         const width = parseSVGDimension(svgElement.getAttribute("width"), 300);
-        const height = parseSVGDimension(svgElement.getAttribute("height"), 150);
+        const height = parseSVGDimension(
+          svgElement.getAttribute("height"),
+          150,
+        );
 
         setSvgContent(content);
         setImageMetadata({ width, height, name: file.name });
