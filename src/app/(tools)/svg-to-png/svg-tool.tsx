@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -111,8 +112,6 @@ export const useFileUploader = () => {
 
   return { svgContent, imageMetadata, handleFileUpload, cancel };
 };
-
-import React from "react";
 
 interface SVGRendererProps {
   svgContent: string;
