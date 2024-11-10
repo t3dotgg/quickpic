@@ -1,11 +1,12 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import type { ChangeEvent } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import React from "react";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
+import { useClipboardPaste } from "@/hooks/use-clipboard-paste";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -80,26 +81,39 @@ export const useFileUploader = () => {
     name: string;
   } | null>(null);
 
+  const processFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        setImageMetadata({
+          width: img.width,
+          height: img.height,
+          name: file.name,
+        });
+        setImageContent(content);
+      };
+      img.src = content;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const img = new Image();
-        img.onload = () => {
-          setImageMetadata({
-            width: img.width,
-            height: img.height,
-            name: file.name,
-          });
-          setImageContent(content);
-        };
-        img.src = content;
-      };
-      reader.readAsDataURL(file);
+      processFile(file);
     }
   };
+
+  const handleFilePaste = useCallback((file: File) => {
+    processFile(file);
+  }, []);
+
+  useClipboardPaste({
+    onPaste: handleFilePaste,
+    acceptedFileTypes: ["image/*", ".jpg", ".jpeg", ".png", ".webp"],
+  });
 
   const cancel = () => {
     setImageContent("");
@@ -201,6 +215,7 @@ export function RoundedTool() {
     return (
       <UploadBox
         title="Add rounded borders to your images. Quick and easy."
+        subtitle="Allows pasting images from clipboard"
         description="Upload Image"
         accept="image/*"
         onChange={handleFileUpload}

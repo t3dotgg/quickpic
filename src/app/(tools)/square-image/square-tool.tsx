@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, type ChangeEvent } from "react";
+import React, {
+  useState,
+  useEffect,
+  type ChangeEvent,
+  useCallback,
+} from "react";
 import { usePlausible } from "next-plausible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
+import { useClipboardPaste } from "@/hooks/use-clipboard-paste";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -28,6 +34,16 @@ export const SquareTool: React.FC = () => {
       setImageMetadata({ width: 0, height: 0, name: file.name });
     }
   };
+
+  const handleFilePaste = useCallback((file: File) => {
+    setImageFile(file);
+    setImageMetadata({ width: 0, height: 0, name: file.name });
+  }, []);
+
+  useClipboardPaste({
+    onPaste: handleFilePaste,
+    acceptedFileTypes: ["image/*", ".jpg", ".jpeg", ".png", ".webp"],
+  });
 
   const handleBackgroundColorChange = (
     event: ChangeEvent<HTMLInputElement>,
@@ -116,6 +132,7 @@ export const SquareTool: React.FC = () => {
     return (
       <UploadBox
         title="Create square images with custom backgrounds. Fast and free."
+        subtitle="Allows pasting images from clipboard"
         description="Upload Image"
         accept="image/*"
         onChange={handleImageUpload}
