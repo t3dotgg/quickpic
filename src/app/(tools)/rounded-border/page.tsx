@@ -1,4 +1,5 @@
 import { RoundedTool } from "./rounded-tool";
+import AppLayout from "@/components/app-layout";
 
 export const metadata = {
   title: "Corner Rounder - QuickPic",
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function RoundedToolPage() {
-  return <RoundedTool />;
+  return (
+    <AppLayout pageName="Corner Rounder">
+      <RoundedTool />
+    </AppLayout>
+  );
 }

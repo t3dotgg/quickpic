@@ -3,6 +3,12 @@ import localFont from "next/font/local";
 import "./globals.css";
 import PlausibleProvider from "next-plausible";
 
+/**
+ * Components
+ */
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -33,9 +39,14 @@ export default function RootLayout({
         <PlausibleProvider domain="quickpic.t3.gg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+        className={`${geistSans.variable} ${geistMono.variable} dark antialiased`}
+      >    
+        <SidebarProvider>
+          <AppSidebar />
+          <main className="w-full"> 
+            { children}
+          </main>
+        </SidebarProvider>
       </body>
     </html>
   );

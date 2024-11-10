@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200pt" height="1200pt" version="1.1" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="1200" height="1200"/>  
+    <g transform="matrix(1,0,0,1,-86.0315,-86.5)">
+        <g transform="matrix(0.846767,0,0,0.846767,177.975,178.44)">
+            <path d="M158.32,35.5L38.52,155.29L483.23,600L38.52,1044.71L158.32,1164.5L722.81,600L158.32,35.5Z" style="fill:white;fill-rule:nonzero;"/>
+        </g>
+        <g transform="matrix(0.846767,0,0,0.846767,177.975,178.44)">
+            <path d="M596.97,35.5L477.18,155.29L921.89,600L477.18,1044.71L596.97,1164.5L1161.47,600L596.97,35.5Z" style="fill:white;fill-rule:nonzero;"/>
+        </g>
+    </g>
+</svg>

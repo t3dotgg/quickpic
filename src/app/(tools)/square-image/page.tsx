@@ -1,4 +1,5 @@
 import { SquareTool } from "./square-tool";
+import AppLayout from "@/components/app-layout";
 
 export const metadata = {
   title: "Square Image Generator - QuickPic",
@@ -7,5 +8,9 @@ export const metadata = {
 };
 
 export default function SquareToolPage() {
-  return <SquareTool />;
+  return (
+    <AppLayout pageName="Square Image Generator">
+      <SquareTool />
+    </AppLayout>
+  )
 }

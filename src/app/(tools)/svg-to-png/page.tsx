@@ -1,4 +1,5 @@
 import { SVGTool } from "./svg-tool";
+import AppLayout from "@/components/app-layout";
 
 export const metadata = {
   title: "SVG to PNG converter - QuickPic",
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function SVGToolPage() {
-  return <SVGTool />;
+  return (
+    <AppLayout pageName="SVG to PNG converter" >
+      <SVGTool />
+    </AppLayout>
+  );
 }
