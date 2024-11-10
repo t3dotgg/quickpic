@@ -216,7 +216,9 @@ export function RoundedTool() {
           radius={radius}
           background={background}
         />
-        <p className="text-lg font-medium text-white/80">{imageMetadata.name}</p>
+        <p className="text-lg font-medium text-white/80">
+          {imageMetadata.name}
+        </p>
       </div>
 
       <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
@@ -239,7 +241,9 @@ export function RoundedTool() {
         options={["white", "black", "transparent"]}
         selected={background}
         onChange={setBackground}
-        formatOption={(option) => option.charAt(0).toUpperCase() + option.slice(1)}
+        formatOption={(option) =>
+          option.charAt(0).toUpperCase() + option.slice(1)
+        }
       />
 
       <div className="flex gap-3">

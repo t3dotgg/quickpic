@@ -8,8 +8,8 @@ export const metadata = {
 
 export default function RoundedToolPage() {
   return (
-    <FileDropzone 
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp"]} 
+    <FileDropzone
+      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp"]}
       dropText="Drop image file"
     >
       <RoundedTool />

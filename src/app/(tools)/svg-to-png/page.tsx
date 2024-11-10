@@ -8,8 +8,8 @@ export const metadata = {
 
 export default function SVGToolPage() {
   return (
-    <FileDropzone 
-      acceptedFileTypes={["image/svg+xml", ".svg"]} 
+    <FileDropzone
+      acceptedFileTypes={["image/svg+xml", ".svg"]}
       dropText="Drop SVG file"
     >
       <SVGTool />

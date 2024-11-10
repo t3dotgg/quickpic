@@ -25,7 +25,7 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current++;
-    
+
     if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
       setIsDragging(true);
     }
@@ -35,37 +35,43 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current--;
-    
+
     if (dragCounter.current === 0) {
       setIsDragging(false);
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    dragCounter.current = 0;
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      dragCounter.current = 0;
 
-    const files = e.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const droppedFile = files[0];
-      if (droppedFile && (
-        acceptedFileTypes.includes(droppedFile.type) ||
-        acceptedFileTypes.some(type => 
-          droppedFile.name.toLowerCase().endsWith(type.replace('*', ''))
-        )
-      )) {
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-        if (fileInput) {
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(droppedFile);
-          fileInput.files = dataTransfer.files;
-          fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        const droppedFile = files[0];
+        if (
+          droppedFile &&
+          (acceptedFileTypes.includes(droppedFile.type) ||
+            acceptedFileTypes.some((type) =>
+              droppedFile.name.toLowerCase().endsWith(type.replace("*", "")),
+            ))
+        ) {
+          const fileInput = document.querySelector(
+            'input[type="file"]',
+          ) as HTMLInputElement;
+          if (fileInput) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(droppedFile);
+            fileInput.files = dataTransfer.files;
+            fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+          }
         }
       }
-    }
-  }, [acceptedFileTypes]);
+    },
+    [acceptedFileTypes],
+  );
 
   return (
     <div
@@ -86,4 +92,4 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
       {children}
     </div>
   );
-}; 
+};

@@ -127,7 +127,9 @@ export const SquareTool: React.FC = () => {
     <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
-        <p className="text-lg font-medium text-white/80">{imageMetadata.name}</p>
+        <p className="text-lg font-medium text-white/80">
+          {imageMetadata.name}
+        </p>
       </div>
 
       <div className="flex gap-6 text-base">
@@ -141,7 +143,8 @@ export const SquareTool: React.FC = () => {
         <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
           <span className="text-sm text-white/60">Square Size</span>
           <span className="font-medium text-white">
-            {Math.max(imageMetadata.width, imageMetadata.height)} × {Math.max(imageMetadata.width, imageMetadata.height)}
+            {Math.max(imageMetadata.width, imageMetadata.height)} ×{" "}
+            {Math.max(imageMetadata.width, imageMetadata.height)}
           </span>
         </div>
       </div>
@@ -151,7 +154,9 @@ export const SquareTool: React.FC = () => {
         options={["white", "black"]}
         selected={backgroundColor}
         onChange={setBackgroundColor}
-        formatOption={(option) => option.charAt(0).toUpperCase() + option.slice(1)}
+        formatOption={(option) =>
+          option.charAt(0).toUpperCase() + option.slice(1)
+        }
       />
 
       <div className="flex gap-3">
