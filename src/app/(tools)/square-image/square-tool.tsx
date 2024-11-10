@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
+
 import { usePlausible } from "next-plausible";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [backgroundColor, setBackgroundColor] = useState<"black" | "white">(
-    "white"
+    "white",
   );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export const SquareTool: React.FC = () => {
   };
 
   const handleBackgroundColorChange = (
-    event: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>,
   ) => {
     const color = event.target.value as "black" | "white";
     setBackgroundColor(color);
@@ -89,7 +90,7 @@ export const SquareTool: React.FC = () => {
                 0,
                 0,
                 previewSize,
-                previewSize
+                previewSize,
               );
               const previewDataUrl = previewCanvas.toDataURL("image/png");
               setPreviewUrl(previewDataUrl);

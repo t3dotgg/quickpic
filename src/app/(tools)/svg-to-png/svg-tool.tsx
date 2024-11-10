@@ -1,8 +1,10 @@
 "use client";
-import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
 
+import { useMemo, useState } from "react";
 import { ChangeEvent } from "react";
+import React from "react";
+
+import { usePlausible } from "next-plausible";
 
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -111,8 +113,6 @@ export const useFileUploader = () => {
   return { svgContent, imageMetadata, handleFileUpload, cancel };
 };
 
-import React from "react";
-
 interface SVGRendererProps {
   svgContent: string;
 }
@@ -144,7 +144,7 @@ function SaveAsPngButton({
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null
+    null,
   );
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,

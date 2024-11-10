@@ -1,8 +1,10 @@
 "use client";
-import { usePlausible } from "next-plausible";
+
 import { useMemo, useState } from "react";
 import { ChangeEvent } from "react";
 import React from "react";
+
+import { usePlausible } from "next-plausible";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -156,7 +158,7 @@ function SaveAsPngButton({
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null
+    null,
   );
   const { convertToPng, canvasProps } = useImageConverter({
     canvas: canvasRef,
@@ -249,7 +251,7 @@ export function RoundedTool() {
             >
               {option.charAt(0).toUpperCase() + option.slice(1)}
             </button>
-          )
+          ),
         )}
       </div>
       <div className="flex gap-2">
