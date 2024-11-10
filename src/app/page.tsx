@@ -29,6 +29,9 @@ export default function Home() {
         <Link href="/heic-to-png" className="text-blue-500 hover:underline">
           HEIC to PNG converter
         </Link>
+        <Link href="/webp-converter" className="text-blue-500 hover:underline">
+          WebP to JPG/PNG converter
+        </Link>
       </main>
       <footer className="mt-8 text-center text-sm text-gray-500">
         <a

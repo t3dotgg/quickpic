@@ -3,10 +3,15 @@ import { usePlausible } from "next-plausible";
 import { useState, useCallback } from "react";
 import heicConvert from "heic-convert";
 
+interface FileWithNewName extends File {
+  newName: string;
+}
+
 export const HeicTool = () => {
   const [isConverting, setIsConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [currentFile, setCurrentFile] = useState<FileWithNewName | null>(null);
   const plausible = usePlausible();
 
   const convertHeicToPng = async (file: File): Promise<Blob> => {
@@ -26,32 +31,48 @@ export const HeicTool = () => {
         return;
       }
 
-      try {
-        setIsConverting(true);
-        setError(null);
-        plausible("convert-heic");
-
-        const pngBlob = await convertHeicToPng(file);
-
-        const url = URL.createObjectURL(pngBlob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${file.name.replace(/\.heic$/i, "")}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        console.error("Conversion error:", err);
-        setError(
-          "Failed to convert file. Please make sure the file is a valid HEIC image.",
-        );
-      } finally {
-        setIsConverting(false);
-      }
+      const fileWithName: FileWithNewName = {
+        ...file,
+        newName: file.name.replace(/\.heic$/i, ""),
+      };
+      setCurrentFile(fileWithName);
+      setError(null);
     },
-    [plausible],
+    [],
   );
+
+  const handleConvert = async () => {
+    if (!currentFile) return;
+
+    try {
+      setIsConverting(true);
+      plausible("convert-heic");
+
+      const pngBlob = await convertHeicToPng(currentFile);
+
+      const url = URL.createObjectURL(pngBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${currentFile.newName}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Conversion error:", err);
+      setError(
+        "Failed to convert file. Please make sure the file is a valid HEIC image.",
+      );
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
+  const handleNameChange = (newName: string) => {
+    if (currentFile) {
+      setCurrentFile({ ...currentFile, newName });
+    }
+  };
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -96,32 +117,73 @@ export const HeicTool = () => {
         </p>
       </div>
 
-      <div
-        className={`relative flex min-h-[200px] w-full max-w-xl flex-col items-center justify-center rounded-lg border-2 border-dashed ${
-          dragActive
-            ? "border-blue-500 bg-blue-50/10"
-            : "border-gray-500 bg-gray-900"
-        } p-6 transition-colors duration-200 hover:border-gray-400`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        <input
-          type="file"
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-          accept=".heic,image/heic"
-          onChange={handleChange}
-          disabled={isConverting}
-        />
-        <div className="text-center">
-          <p className="mb-2 text-lg font-medium text-gray-300">
-            {isConverting ? "Converting..." : "Drop your HEIC file here"}
-          </p>
-          <p className="text-sm text-gray-400">or click to select file</p>
+      {!currentFile && (
+        <div
+          className={`relative flex min-h-[200px] w-full max-w-xl flex-col items-center justify-center rounded-lg border-2 border-dashed ${
+            dragActive
+              ? "border-blue-500 bg-blue-50/10"
+              : "border-gray-500 bg-gray-900"
+          } p-6 transition-colors duration-200 hover:border-gray-400`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
+          <input
+            type="file"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            accept=".heic,image/heic"
+            onChange={handleChange}
+            disabled={isConverting}
+          />
+          <div className="text-center">
+            <p className="mb-2 text-lg font-medium text-gray-300">
+              {isConverting ? "Converting..." : "Drop your HEIC file here"}
+            </p>
+            <p className="text-sm text-gray-400">or click to select file</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {error && <p className="max-w-md text-center text-red-500">{error}</p>}
+
+      {currentFile && !error && (
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={currentFile.newName}
+              onChange={(e) => handleNameChange(e.target.value)}
+              className="rounded border border-gray-600 bg-transparent p-2 text-foreground"
+              placeholder="Enter file name"
+            />
+            <span className="text-gray-400">.png</span>
+          </div>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => void handleConvert()}
+              disabled={isConverting}
+              className={`rounded px-4 py-2 text-white ${
+                isConverting
+                  ? "cursor-not-allowed bg-gray-400"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
+            >
+              {isConverting ? "Converting..." : "Convert"}
+            </button>
+            
+            <button
+              onClick={() => {
+                setCurrentFile(null);
+                setError(null);
+              }}
+              className="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="text-center text-sm text-gray-400">
         <p>Supported file types: .heic</p>

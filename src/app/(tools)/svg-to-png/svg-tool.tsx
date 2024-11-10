@@ -1,6 +1,6 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { type ChangeEvent } from "react";
@@ -76,40 +76,52 @@ function useSvgConverter(props: {
 
 export const useFileUploader = () => {
   const [svgContent, setSvgContent] = useState<string>("");
-
   const [imageMetadata, setImageMetadata] = useState<{
     width: number;
     height: number;
     name: string;
+    newName?: string;
   } | null>(null);
 
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
+  const handleFileUpload = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-        // Extract width and height from SVG content
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(content, "image/svg+xml");
-        const svgElement = svgDoc.documentElement;
-        const width = parseInt(svgElement.getAttribute("width") ?? "300");
-        const height = parseInt(svgElement.getAttribute("height") ?? "150");
+      const content = await file.text();
+      setSvgContent(content);
 
-        setSvgContent(content);
-        setImageMetadata({ width, height, name: file.name });
-      };
-      reader.readAsText(file);
-    }
-  };
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(content, "image/svg+xml");
+      const svgElement = svgDoc.documentElement;
 
-  const cancel = () => {
+      const width = parseInt(svgElement.getAttribute("width") ?? "300");
+      const height = parseInt(svgElement.getAttribute("height") ?? "150");
+
+      setImageMetadata({
+        width,
+        height,
+        name: file.name,
+        newName: file.name.replace(/\.svg$/i, ""),
+      });
+    },
+    [],
+  );
+
+  const cancel = useCallback(() => {
     setSvgContent("");
     setImageMetadata(null);
-  };
+  }, []);
 
-  return { svgContent, imageMetadata, handleFileUpload, cancel };
+  return {
+    svgContent,
+    imageMetadata,
+    handleFileUpload,
+    cancel,
+    updateFileName: (newName: string) => {
+      setImageMetadata((prev) => prev ? { ...prev, newName } : null);
+    },
+  };
 };
 
 import React from "react";
@@ -142,40 +154,52 @@ function SaveAsPngButton({
 }: {
   svgContent: string;
   scale: Scale;
-  imageMetadata: { width: number; height: number; name: string };
+  imageMetadata: { width: number; height: number; name: string; newName?: string };
 }) {
-  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null,
+  const [fileName, setFileName] = useState(
+    imageMetadata.newName ?? imageMetadata.name.replace(/\.svg$/i, "")
   );
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const plausible = usePlausible();
+
   const { convertToPng, canvasProps } = useSvgConverter({
-    canvas: canvasRef,
+    canvas: canvasRef.current,
     svgContent,
     scale,
+    fileName,
     imageMetadata,
   });
 
-  const plausible = usePlausible();
-
   return (
-    <div>
-      <canvas ref={setCanvasRef} {...canvasProps} hidden />
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={fileName}
+          onChange={(e) => setFileName(e.target.value)}
+          className="rounded border border-gray-600 bg-transparent p-2 text-foreground"
+          placeholder="Enter file name"
+        />
+        <span className="text-gray-400">-{scale}x.png</span>
+      </div>
+      
       <button
         onClick={() => {
-          plausible("convert-svg-to-png");
+          plausible("convert-svg");
           void convertToPng();
         }}
-        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+        className="rounded-md bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700"
       >
         Save as PNG
       </button>
+      <canvas ref={canvasRef} {...canvasProps} className="hidden" />
     </div>
   );
 }
 
 export function SVGTool() {
-  const { svgContent, imageMetadata, handleFileUpload, cancel } =
+  const { svgContent, imageMetadata, handleFileUpload, cancel, updateFileName } =
     useFileUploader();
-
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
 
   if (!imageMetadata)
@@ -201,13 +225,22 @@ export function SVGTool() {
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       <SVGRenderer svgContent={svgContent} />
-      <p>{imageMetadata.name}</p>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={imageMetadata?.newName ?? imageMetadata?.name ?? ""}
+          onChange={(e) => updateFileName(e.target.value)}
+          className="rounded border border-gray-600 bg-transparent p-2 text-foreground"
+          placeholder="Enter file name"
+        />
+        <span className="text-gray-400">.svg</span>
+      </div>
       <p>
-        Original size: {imageMetadata.width}px x {imageMetadata.height}px
+        Original size: {imageMetadata?.width}px x {imageMetadata?.height}px
       </p>
       <p>
-        Scaled size: {imageMetadata.width * scale}px x{" "}
-        {imageMetadata.height * scale}px
+        Scaled size: {imageMetadata?.width && imageMetadata.width * scale}px x{" "}
+        {imageMetadata?.height && imageMetadata.height * scale}px
       </p>
       <div className="flex gap-2">
         {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
@@ -228,7 +261,7 @@ export function SVGTool() {
         <SaveAsPngButton
           svgContent={svgContent}
           scale={scale}
-          imageMetadata={imageMetadata}
+          imageMetadata={imageMetadata!}
         />
         <button
           onClick={cancel}
