@@ -7,10 +7,9 @@ import { useFileUpload } from "@/app/hooks/useFileUpload";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useLocalStorage<"black" | "white">(
-    "squareTool_backgroundColor",
-    "white"
-  );
+  const [backgroundColor, setBackgroundColor] = useLocalStorage<
+    "black" | "white"
+  >("squareTool_backgroundColor", "white");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
@@ -27,7 +26,7 @@ export const SquareTool: React.FC = () => {
 
   const { handleFileUpload } = useFileUpload({
     onFileProcess: processImage,
-    acceptedTypes: "image/*"
+    acceptedTypes: "image/*",
   });
 
   const handleBackgroundColorChange = (color: "black" | "white") => {
@@ -97,7 +96,7 @@ export const SquareTool: React.FC = () => {
                 0,
                 0,
                 previewSize,
-                previewSize
+                previewSize,
               );
               const previewDataUrl = previewCanvas.toDataURL("image/png");
               setPreviewUrl(previewDataUrl);
@@ -138,14 +137,16 @@ export const SquareTool: React.FC = () => {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 text-2xl">
-            {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
+            {previewUrl && (
+              <img src={previewUrl} alt="Preview" className="mb-4" />
+            )}
             <p>{imageMetadata.name}</p>
             <p>
               Original size: {imageMetadata.width}px x {imageMetadata.height}px
             </p>
             <p>
-              Square size: {Math.max(imageMetadata.width, imageMetadata.height)}px x{" "}
-              {Math.max(imageMetadata.width, imageMetadata.height)}px
+              Square size: {Math.max(imageMetadata.width, imageMetadata.height)}
+              px x {Math.max(imageMetadata.width, imageMetadata.height)}px
             </p>
 
             <div className="flex gap-2">

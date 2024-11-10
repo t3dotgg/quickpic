@@ -179,7 +179,7 @@ export function RoundedTool() {
 
   const { handleFileUpload } = useFileUpload({
     onFileProcess: processImage,
-    acceptedTypes: "image/*"
+    acceptedTypes: "image/*",
   });
 
   const handleCancel = () => {

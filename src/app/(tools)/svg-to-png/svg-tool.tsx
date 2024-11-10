@@ -101,7 +101,7 @@ function SaveAsPngButton({
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null
+    null,
   );
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,
@@ -155,7 +155,7 @@ export function SVGTool() {
 
   const { handleFileUpload } = useFileUpload({
     onFileProcess: processSvg,
-    acceptedTypes: ".svg"
+    acceptedTypes: ".svg",
   });
 
   const handleCancel = () => {

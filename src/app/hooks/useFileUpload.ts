@@ -1,11 +1,14 @@
-import { useState, useEffect, type ChangeEvent, type DragEvent } from 'react';
+import { useState, useEffect, type ChangeEvent } from "react";
 
 interface UseFileUploadProps {
   onFileProcess: (file: File) => void;
   acceptedTypes?: string;
 }
 
-export function useFileUpload({ onFileProcess, acceptedTypes = "image/*" }: UseFileUploadProps) {
+export function useFileUpload({
+  onFileProcess,
+  acceptedTypes = "image/*",
+}: UseFileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragCounter, setDragCounter] = useState(0);
 
@@ -13,8 +16,8 @@ export function useFileUpload({ onFileProcess, acceptedTypes = "image/*" }: UseF
     function handleDragIn(e: DragEvent) {
       e.preventDefault();
       e.stopPropagation();
-      setDragCounter(prev => prev + 1);
-      if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setDragCounter((prev) => prev + 1);
+      if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
         setIsDragging(true);
       }
     }
@@ -22,7 +25,7 @@ export function useFileUpload({ onFileProcess, acceptedTypes = "image/*" }: UseF
     function handleDragOut(e: DragEvent) {
       e.preventDefault();
       e.stopPropagation();
-      setDragCounter(prev => prev - 1);
+      setDragCounter((prev) => prev - 1);
       if (dragCounter - 1 === 0) {
         setIsDragging(false);
       }
@@ -39,13 +42,11 @@ export function useFileUpload({ onFileProcess, acceptedTypes = "image/*" }: UseF
       setIsDragging(false);
       setDragCounter(0);
 
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         const file = e.dataTransfer.files[0];
         if (acceptedTypes === ".svg") {
           if (file?.name.toLowerCase().endsWith(".svg")) {
             onFileProcess(file);
-          } else {
-            alert("Please upload an SVG file");
           }
         } else if (file?.type.match(acceptedTypes)) {
           onFileProcess(file);
@@ -54,16 +55,21 @@ export function useFileUpload({ onFileProcess, acceptedTypes = "image/*" }: UseF
       }
     }
 
-    window.addEventListener('dragenter', handleDragIn as any);
-    window.addEventListener('dragleave', handleDragOut as any);
-    window.addEventListener('dragover', handleDragOver as any);
-    window.addEventListener('drop', handleDrop as any);
+    const handleDragInWrapper = (e: Event) => handleDragIn(e as DragEvent);
+    const handleDragOutWrapper = (e: Event) => handleDragOut(e as DragEvent);
+    const handleDragOverWrapper = (e: Event) => handleDragOver(e as DragEvent);
+    const handleDropWrapper = (e: Event) => handleDrop(e as DragEvent);
+
+    window.addEventListener("dragenter", handleDragInWrapper);
+    window.addEventListener("dragleave", handleDragOutWrapper);
+    window.addEventListener("dragover", handleDragOverWrapper);
+    window.addEventListener("drop", handleDropWrapper);
 
     return () => {
-      window.removeEventListener('dragenter', handleDragIn as any);
-      window.removeEventListener('dragleave', handleDragOut as any);
-      window.removeEventListener('dragover', handleDragOver as any);
-      window.removeEventListener('drop', handleDrop as any);
+      window.removeEventListener("dragenter", handleDragInWrapper);
+      window.removeEventListener("dragleave", handleDragOutWrapper);
+      window.removeEventListener("dragover", handleDragOverWrapper);
+      window.removeEventListener("drop", handleDropWrapper);
     };
   }, [dragCounter, onFileProcess, acceptedTypes]);
 
@@ -84,6 +90,6 @@ export function useFileUpload({ onFileProcess, acceptedTypes = "image/*" }: UseF
 
   return {
     isDragging,
-    handleFileUpload
+    handleFileUpload,
   };
 }
