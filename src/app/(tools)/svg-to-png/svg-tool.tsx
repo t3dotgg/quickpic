@@ -151,8 +151,7 @@ const ConverterCanvas = ({
   onPngReady: (png: { dataURL: string; fileName: string }) => void;
 }) => {
 
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(
-    null
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null)
 
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,
