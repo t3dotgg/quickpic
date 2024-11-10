@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import React from "react";
+import FilenameDisplay from "@/components/file-name-display";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -71,7 +72,6 @@ function useImageConverter(props: {
 
 export const useFileUploader = () => {
   const [imageContent, setImageContent] = useState<string>("");
-
   const [imageMetadata, setImageMetadata] = useState<{
     width: number;
     height: number;
@@ -99,12 +99,26 @@ export const useFileUploader = () => {
     }
   };
 
+  const updateImageMetadata = (
+    newMetadata: Partial<{ width: number; height: number; name: string }>,
+  ) => {
+    setImageMetadata((prevMetadata) =>
+      prevMetadata ? { ...prevMetadata, ...newMetadata } : null,
+    );
+  };
+
   const cancel = () => {
     setImageContent("");
     setImageMetadata(null);
   };
 
-  return { imageContent, imageMetadata, handleFileUpload, cancel };
+  return {
+    imageContent,
+    imageMetadata,
+    handleFileUpload,
+    cancel,
+    updateImageMetadata,
+  };
 };
 
 interface ImageRendererProps {
@@ -186,14 +200,26 @@ function SaveAsPngButton({
 }
 
 export function RoundedTool() {
-  const { imageContent, imageMetadata, handleFileUpload, cancel } =
-    useFileUploader();
+  const {
+    imageContent,
+    imageMetadata,
+    updateImageMetadata,
+    handleFileUpload,
+    cancel,
+  } = useFileUploader();
 
   const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
   const [background, setBackground] = useLocalStorage<BackgroundOption>(
     "roundedTool_background",
     "transparent",
   );
+
+  function updateFileName(newName: string) {
+    if (imageMetadata) {
+      const newMetadata = { ...imageMetadata, name: newName };
+      updateImageMetadata(newMetadata);
+    }
+  }
 
   if (!imageMetadata)
     return (
@@ -220,7 +246,10 @@ export function RoundedTool() {
         radius={radius}
         background={background}
       />
-      <p>{imageMetadata.name}</p>
+      <FilenameDisplay
+        initialName={imageMetadata.name}
+        onSave={(newName) => updateFileName(newName)}
+      />
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>

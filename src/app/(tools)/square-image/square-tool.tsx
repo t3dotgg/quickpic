@@ -3,6 +3,7 @@
 import React, { useState, useEffect, type ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import FilenameDisplay from "@/components/file-name-display";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -110,6 +111,13 @@ export const SquareTool: React.FC = () => {
     }
   }, [imageFile, backgroundColor]);
 
+  function updateFileName(newName: string) {
+    if (imageMetadata) {
+      const newMetadata = { ...imageMetadata, name: newName };
+      setImageMetadata(newMetadata);
+    }
+  }
+
   if (!imageMetadata) {
     return (
       <div className="flex flex-col gap-4 p-4">
@@ -134,7 +142,10 @@ export const SquareTool: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
-      <p>{imageMetadata.name}</p>
+      <FilenameDisplay
+        initialName={imageMetadata.name}
+        onSave={(newName) => updateFileName(newName)}
+      />
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
