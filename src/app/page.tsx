@@ -2,8 +2,8 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col justify-between min-h-screen p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex-grow flex flex-col items-center justify-center">
+    <div className="flex min-h-screen flex-col justify-between p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
+      <main className="flex flex-grow flex-col items-center justify-center">
         <div>
           Hi. I&apos;m{" "}
           <a
@@ -27,7 +27,7 @@ export default function Home() {
           Corner Rounder
         </Link>
       </main>
-      <footer className="text-center text-sm text-gray-500 mt-8">
+      <footer className="mt-8 text-center text-sm text-gray-500">
         <a
           href="https://github.com/t3dotgg/quickpic"
           target="_blank"
