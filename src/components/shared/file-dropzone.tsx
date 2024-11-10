@@ -58,13 +58,11 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
               droppedFile.name.toLowerCase().endsWith(type.replace("*", "")),
             ))
         ) {
-          const fileInput = document.querySelector(
-            'input[type="file"]',
-          ) as HTMLInputElement;
+          const fileInput = document.querySelector('input[type="file"]')!;
           if (fileInput) {
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(droppedFile);
-            fileInput.files = dataTransfer.files;
+            (fileInput as HTMLInputElement).files = dataTransfer.files;
             fileInput.dispatchEvent(new Event("change", { bubbles: true }));
           }
         }

@@ -40,7 +40,11 @@ export function useClipboardPaste({
   );
 
   useEffect(() => {
-    document.addEventListener("paste", handlePaste);
-    return () => document.removeEventListener("paste", handlePaste);
+    const handler = (event: ClipboardEvent) => {
+      void handlePaste(event);
+    };
+
+    document.addEventListener("paste", handler);
+    return () => document.removeEventListener("paste", handler);
   }, [handlePaste]);
 }
