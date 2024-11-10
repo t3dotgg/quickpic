@@ -9,7 +9,11 @@ interface AnimatedScaleSelectorProps {
   onChange: (scale: Scale) => void;
 }
 
-export function AnimatedScaleSelector({ scales, selectedScale, onChange }: AnimatedScaleSelectorProps) {
+export function AnimatedScaleSelector({
+  scales,
+  selectedScale,
+  onChange,
+}: AnimatedScaleSelectorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLButtonElement>(null);
   const highlightRef = useRef<HTMLDivElement>(null);
@@ -31,7 +35,10 @@ export function AnimatedScaleSelector({ scales, selectedScale, onChange }: Anima
   return (
     <div className="flex flex-col items-center gap-2">
       <span className="text-sm text-white/60">Scale Factor</span>
-      <div ref={containerRef} className="relative inline-flex rounded-lg bg-white/5 p-1">
+      <div
+        ref={containerRef}
+        className="relative inline-flex rounded-lg bg-white/5 p-1"
+      >
         <div
           ref={highlightRef}
           className="absolute top-1 h-[calc(100%-8px)] rounded-md bg-blue-600 transition-all duration-200"
@@ -53,4 +60,4 @@ export function AnimatedScaleSelector({ scales, selectedScale, onChange }: Anima
       </div>
     </div>
   );
-} 
+}

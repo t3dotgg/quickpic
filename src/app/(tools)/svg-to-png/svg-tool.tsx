@@ -114,7 +114,6 @@ export const useFileUploader = () => {
   return { svgContent, imageMetadata, handleFileUpload, cancel };
 };
 
-
 import React from "react";
 
 interface SVGRendererProps {
@@ -188,8 +187,18 @@ export function SVGTool() {
           Make SVGs into PNGs. Also makes them bigger. (100% free btw.)
         </p>
         <div className="flex w-72 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-white/30 bg-white/10 p-6 backdrop-blur-sm">
-          <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          <svg
+            className="h-8 w-8 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+            />
           </svg>
           <p className="text-sm text-gray-400">Drag and Drop</p>
           <p className="text-sm text-gray-500">or</p>
@@ -207,25 +216,27 @@ export function SVGTool() {
     );
 
   return (
-    <div className="flex flex-col items-center justify-center max-w-2xl mx-auto gap-6 p-6">
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
       {/* Preview Section */}
-      <div className="w-full rounded-xl p-6 flex flex-col items-center gap-4">
+      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         <SVGRenderer svgContent={svgContent} />
-        <p className="text-lg font-medium text-white/80">{imageMetadata.name}</p>
+        <p className="text-lg font-medium text-white/80">
+          {imageMetadata.name}
+        </p>
       </div>
 
       {/* Size Information */}
       <div className="flex gap-6 text-base">
-        <div className="flex flex-col items-center bg-white/5 rounded-lg p-3">
-          <span className="text-white/60 text-sm">Original</span>
-          <span className="text-white font-medium">
+        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
+          <span className="text-sm text-white/60">Original</span>
+          <span className="font-medium text-white">
             {imageMetadata.width} × {imageMetadata.height}
           </span>
         </div>
 
-        <div className="flex flex-col items-center bg-white/5 rounded-lg p-3">
-          <span className="text-white/60 text-sm">Scaled</span>
-          <span className="text-white font-medium">
+        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
+          <span className="text-sm text-white/60">Scaled</span>
+          <span className="font-medium text-white">
             {imageMetadata.width * scale} × {imageMetadata.height * scale}
           </span>
         </div>
@@ -242,7 +253,7 @@ export function SVGTool() {
       <div className="flex gap-3">
         <button
           onClick={cancel}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-white/90 bg-red-700 hover:bg-red-800 transition-colors"
+          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
         >
           Cancel
         </button>
