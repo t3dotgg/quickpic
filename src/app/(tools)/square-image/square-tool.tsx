@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, type ChangeEvent, useRef} from "react";
+import React, { useState, useEffect, type ChangeEvent, useRef } from "react";
 import { usePlausible } from "next-plausible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
@@ -17,7 +17,7 @@ const ColorPicker = ({
     <>
       <button
         onClick={() => refInput.current?.click()}
-        className="size-8 rounded-full border border-white shrink-0"
+        className="size-8 shrink-0 rounded-full border border-white"
         style={{ backgroundColor: value }}
       >
         {/** issue: input can't be styled */}
@@ -35,7 +35,10 @@ const ColorPicker = ({
 };
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useLocalStorage<string>("squareTool_backgroundColor", "white");
+  const [backgroundColor, setBackgroundColor] = useLocalStorage<string>(
+    "squareTool_backgroundColor",
+    "white",
+  );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
