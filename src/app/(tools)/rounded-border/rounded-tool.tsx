@@ -139,7 +139,12 @@ const ImageRenderer: React.FC<ImageRendererProps> = ({
         src={imageContent}
         alt="Preview"
         className="relative rounded-lg"
-        style={{ width: "100%", height: "auto" }}
+        style={{
+          width: "100%",
+          height: "auto",
+          maxWidth: "800px",
+          maxHeight: "600px",
+        }}
       />
     </div>
   );
