@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 function ThemeToggleButton({ theme, toggleTheme }: { theme: string; toggleTheme: () => void }) {
     return (
