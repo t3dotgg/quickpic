@@ -3,6 +3,7 @@ import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
 import { ChangeEvent } from "react";
 import React from "react";
+import DropzoneUpload from "../components/dropzone-upload";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -196,15 +197,12 @@ export function RoundedTool() {
       <div className="flex flex-col p-4 gap-4">
         <p className="text-center">Round the corners of any image</p>
         <div className="flex justify-center">
-          <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
-            <span>Upload Image</span>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              accept="image/*"
-              className="hidden"
-            />
-          </label>
+          <DropzoneUpload
+            accept={{
+              "image/*": [],
+            }}
+            onFilesAdded={handleFileUpload}
+          />
         </div>
       </div>
     );
