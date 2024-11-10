@@ -4,10 +4,7 @@ import Link from "next/link";
 function BackButton() {
   return (
     <div className="fixed left-4 top-4 z-50">
-      <Link
-        href="/"
-        className={buttonVariants({ variant: "ghost" })}
-      >
+      <Link href="/" className={buttonVariants({ variant: "ghost" })}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-4 w-4"
