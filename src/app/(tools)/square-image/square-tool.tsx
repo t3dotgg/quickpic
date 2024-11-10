@@ -141,7 +141,7 @@ export const SquareTool: React.FC = () => {
   const radioButtons = (buttons: string[]) => {
     return buttons.map((val) => {
       return (
-        <label className="inline-flex items-center">
+        <label className="inline-flex items-center" key={val}>
           <input
             type="radio"
             value={val}
@@ -155,7 +155,7 @@ export const SquareTool: React.FC = () => {
               (text) =>
                 text.charAt(0).toUpperCase() +
                 text.substring(1).toLowerCase() +
-                " "
+                " ",
             )}
             Background
           </span>
@@ -176,7 +176,7 @@ export const SquareTool: React.FC = () => {
         {Math.max(imageMetadata.width, imageMetadata.height)}px
       </p>
 
-      <div className="grid grid-rows-2 grid-cols-2 gap-x-4 gap-y-2">
+      <div className="grid grid-cols-2 grid-rows-2 gap-x-4 gap-y-2">
         {radioButtons(["white", "black", "transparent", "custom"])}
       </div>
 
