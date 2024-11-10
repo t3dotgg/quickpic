@@ -1,9 +1,9 @@
 "use client";
-import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 
-import { type ChangeEvent } from "react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { usePlausible } from "next-plausible";
+import React, { useMemo, useState, type ChangeEvent } from "react";
+import { toast } from "sonner";
 
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -85,7 +85,16 @@ export const useFileUploader = () => {
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+
     if (file) {
+      if(file.type !== "image/svg+xml") {
+        toast.error("Error uploading file!", {
+          description: "Only SVG's are supported.",
+        });
+
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
@@ -112,7 +121,7 @@ export const useFileUploader = () => {
   return { svgContent, imageMetadata, handleFileUpload, cancel };
 };
 
-import React from "react";
+
 
 interface SVGRendererProps {
   svgContent: string;
@@ -190,7 +199,7 @@ export function SVGTool() {
             <input
               type="file"
               onChange={handleFileUpload}
-              accept=".svg"
+              accept="image/svg+xml"
               className="hidden"
             />
           </label>

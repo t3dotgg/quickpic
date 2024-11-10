@@ -1,9 +1,10 @@
 "use client";
-import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
-import type { ChangeEvent } from "react";
+
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import React from "react";
+import { usePlausible } from "next-plausible";
+import type { ChangeEvent } from "react";
+import React, { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -81,6 +82,14 @@ export const useFileUploader = () => {
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if(!file.type.startsWith("image/")) {
+        toast.error("Error uploading file!", {
+          description: "Only Images are supported.",
+        });
+
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;

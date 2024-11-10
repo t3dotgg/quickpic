@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, type ChangeEvent } from "react";
-import { usePlausible } from "next-plausible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { usePlausible } from "next-plausible";
+import React, { useEffect, useState, type ChangeEvent } from "react";
+import { toast } from "sonner";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -22,6 +23,14 @@ export const SquareTool: React.FC = () => {
   const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if(!file.type.startsWith("image/")) {
+        toast.error("Error uploading file!", {
+          description: "Only Images are supported.",
+        });
+
+        return;
+      }
+
       setImageFile(file);
       setImageMetadata({ width: 0, height: 0, name: file.name });
     }
