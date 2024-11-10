@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 
 import { type ChangeEvent } from "react";
 
-type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
+import { AnimatedScaleSelector } from "./components/animated-scale-selector";
+
+export type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
 function scaleSvg(svgContent: string, scale: Scale) {
   const parser = new DOMParser();
@@ -111,6 +113,7 @@ export const useFileUploader = () => {
   return { svgContent, imageMetadata, handleFileUpload, cancel };
 };
 
+
 import React from "react";
 
 interface SVGRendererProps {
@@ -179,11 +182,16 @@ export function SVGTool() {
 
   if (!imageMetadata)
     return (
-      <div className="flex flex-col gap-4 p-4">
-        <p className="text-center">
+      <div className="flex flex-col items-center justify-center gap-4 p-4">
+        <p className="text-center text-white">
           Make SVGs into PNGs. Also makes them bigger. (100% free btw.)
         </p>
-        <div className="flex justify-center">
+        <div className="flex w-72 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-white/30 bg-white/10 p-6 backdrop-blur-sm">
+          <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <p className="text-sm text-gray-400">Drag and Drop</p>
+          <p className="text-sm text-gray-500">or</p>
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
             <span>Upload SVG</span>
             <input
@@ -198,43 +206,50 @@ export function SVGTool() {
     );
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
-      <SVGRenderer svgContent={svgContent} />
-      <p>{imageMetadata.name}</p>
-      <p>
-        Original size: {imageMetadata.width}px x {imageMetadata.height}px
-      </p>
-      <p>
-        Scaled size: {imageMetadata.width * scale}px x{" "}
-        {imageMetadata.height * scale}px
-      </p>
-      <div className="flex gap-2">
-        {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
-          <button
-            key={value}
-            onClick={() => setScale(value)}
-            className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-              scale === value
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {value}x
-          </button>
-        ))}
+    <div className="flex flex-col items-center justify-center max-w-2xl mx-auto gap-6 p-6">
+      {/* Preview Section */}
+      <div className="w-full rounded-xl p-6 flex flex-col items-center gap-4">
+        <SVGRenderer svgContent={svgContent} />
+        <p className="text-lg font-medium text-white/80">{imageMetadata.name}</p>
       </div>
-      <div className="flex gap-2">
+
+      {/* Size Information */}
+      <div className="flex gap-6 text-base">
+        <div className="flex flex-col items-center bg-white/5 rounded-lg p-3">
+          <span className="text-white/60 text-sm">Original</span>
+          <span className="text-white font-medium">
+            {imageMetadata.width} × {imageMetadata.height}
+          </span>
+        </div>
+
+        <div className="flex flex-col items-center bg-white/5 rounded-lg p-3">
+          <span className="text-white/60 text-sm">Scaled</span>
+          <span className="text-white font-medium">
+            {imageMetadata.width * scale} × {imageMetadata.height * scale}
+          </span>
+        </div>
+      </div>
+
+      {/* Scale Controls */}
+      <AnimatedScaleSelector
+        scales={[1, 2, 4, 8, 16, 32, 64]}
+        selectedScale={scale}
+        onChange={setScale}
+      />
+
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        <button
+          onClick={cancel}
+          className="rounded-lg px-4 py-2 text-sm font-medium text-white/90 bg-red-700 hover:bg-red-800 transition-colors"
+        >
+          Cancel
+        </button>
         <SaveAsPngButton
           svgContent={svgContent}
           scale={scale}
           imageMetadata={imageMetadata}
         />
-        <button
-          onClick={cancel}
-          className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
-        >
-          Cancel
-        </button>
       </div>
     </div>
   );

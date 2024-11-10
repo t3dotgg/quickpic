@@ -1,4 +1,5 @@
 import { SVGTool } from "./svg-tool";
+import { FileDropzone } from "./file-dropzone";
 
 export const metadata = {
   title: "SVG to PNG converter - QuickPic",
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function SVGToolPage() {
-  return <SVGTool />;
+  return (
+    <FileDropzone>
+      <SVGTool />
+    </FileDropzone>
+  );
 }
