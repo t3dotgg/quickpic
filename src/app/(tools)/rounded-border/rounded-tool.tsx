@@ -1,6 +1,6 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState, useEffect, ChangeEvent } from "react";
+import { useMemo, useState,  ChangeEvent } from "react";
 import React from "react";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
@@ -179,7 +179,6 @@ export function RoundedTool() {
   const { imageContent, imageMetadata, handleFileUpload, cancel } = useFileUploader();
   const [radius, setRadius] = useState<Radius>(2);
   const [background, setBackground] = useState<BackgroundOption>("transparent");
-  const plausible = usePlausible();
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = React.useRef(0);
 
