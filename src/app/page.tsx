@@ -27,7 +27,7 @@ export default function Home() {
           Corner Rounder
         </Link>
         <Link href="/bg-remover" className="text-blue-500 hover:underline">
-        Background Remover
+          Background Remover
         </Link>
       </main>
       <footer className="mt-8 text-center text-sm text-gray-500">
