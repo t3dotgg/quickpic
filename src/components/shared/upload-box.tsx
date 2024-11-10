@@ -4,6 +4,7 @@ import React from "react";
 
 interface UploadBoxProps {
   title: string;
+  subtitle?: string;
   description: string;
   accept: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -11,13 +12,21 @@ interface UploadBoxProps {
 
 export const UploadBox: React.FC<UploadBoxProps> = ({
   title,
+  subtitle,
   description,
   accept,
   onChange,
 }) => {
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4">
-      <p className="text-center text-white">{title}</p>
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-center text-white">{title}</p>
+        {subtitle && (
+          <p className="inline-block rounded-full border border-white/30 bg-white/5 px-2 py-0.5 text-center text-sm text-white/60">
+            {subtitle}
+          </p>
+        )}
+      </div>
       <div className="flex w-72 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-white/30 bg-white/10 p-6 backdrop-blur-sm">
         <svg
           className="h-8 w-8 text-gray-400"
