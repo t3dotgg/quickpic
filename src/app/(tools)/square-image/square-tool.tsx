@@ -28,7 +28,7 @@ const ColorPicker = ({
         onClick={() => refInput.current?.click()}
         className="size-8 shrink-0 rounded-full border border-white"
         style={{ backgroundColor: value }}
-      ></button>
+      />
     </>
   );
 };
