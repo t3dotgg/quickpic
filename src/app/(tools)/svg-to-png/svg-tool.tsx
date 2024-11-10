@@ -5,9 +5,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { type ChangeEvent } from "react";
 
-type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
-
-function scaleSvg(svgContent: string, scale: Scale) {
+function scaleSvg(svgContent: string, scale: number) {
   const parser = new DOMParser();
   const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgElement = svgDoc.documentElement;
@@ -26,7 +24,7 @@ function scaleSvg(svgContent: string, scale: Scale) {
 function useSvgConverter(props: {
   canvas: HTMLCanvasElement | null;
   svgContent: string;
-  scale: Scale;
+  scale: number;
   fileName?: string;
   imageMetadata: { width: number; height: number; name: string };
 }) {
@@ -141,7 +139,7 @@ function SaveAsPngButton({
   imageMetadata,
 }: {
   svgContent: string;
-  scale: Scale;
+  scale: number;
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
@@ -156,14 +154,17 @@ function SaveAsPngButton({
 
   const plausible = usePlausible();
 
+  const handleSaveAsPng = async () => {
+    plausible("convert-svg-to-png");
+    await convertToPng();
+    console.log("Conversion completed");
+  };
+
   return (
     <div>
       <canvas ref={setCanvasRef} {...canvasProps} hidden />
       <button
-        onClick={() => {
-          plausible("convert-svg-to-png");
-          void convertToPng();
-        }}
+        onClick={handleSaveAsPng}
         className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
       >
         Save as PNG
@@ -176,7 +177,8 @@ export function SVGTool() {
   const { svgContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
-  const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
+  const [scale, setnumber] = useLocalStorage<number>("svgTool_scale", 1);
+  const [customnumberVisible, setCustomnumberVisible] = useState(false);
 
   if (!imageMetadata)
     return (
@@ -206,24 +208,54 @@ export function SVGTool() {
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
       <p>
-        Scaled size: {imageMetadata.width * scale}px x{" "}
+        numberd size: {imageMetadata.width * scale}px x{" "}
         {imageMetadata.height * scale}px
       </p>
       <div className="flex gap-2">
-        {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
-          <button
+        {[1, 2, 4, 8, 16, 32, 64].map((value) => (
+            <button
             key={value}
-            onClick={() => setScale(value)}
+            onClick={() => {
+              setnumber(value);
+              if (customnumberVisible) setCustomnumberVisible(false);
+            }}
             className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-              scale === value
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+              scale === value && !customnumberVisible
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
             }`}
-          >
+            >
             {value}x
-          </button>
+            </button>
         ))}
+        <button
+          onClick={() => setCustomnumberVisible(!customnumberVisible)}
+          className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+            customnumberVisible
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          Custom
+        </button>
       </div>
+      {customnumberVisible && (
+        <div className="flex flex-col items-center gap-2">
+          <input
+            type="number"
+            min="0.1"
+            step="0.1"
+            onChange={(e) => {
+              const value = parseFloat(e.target.value);
+              if (value > 0) {
+          setnumber(value);
+              }
+            }}
+            className="rounded-md border px-2 py-1 text-sm text-black"
+            placeholder="Enter custom scale"
+          />
+        </div>
+      )}
       <div className="flex gap-2">
         <SaveAsPngButton
           svgContent={svgContent}
