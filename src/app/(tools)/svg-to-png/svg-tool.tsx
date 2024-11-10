@@ -104,15 +104,30 @@ export const useFileUploader = () => {
     }
   };
 
+  const updateImageMetadata = (
+    newMetadata: Partial<{ width: number; height: number; name: string }>,
+  ) => {
+    setImageMetadata((prevMetadata) =>
+      prevMetadata ? { ...prevMetadata, ...newMetadata } : null,
+    );
+  };
+
   const cancel = () => {
     setSvgContent("");
     setImageMetadata(null);
   };
 
-  return { svgContent, imageMetadata, handleFileUpload, cancel };
+  return {
+    svgContent,
+    imageMetadata,
+    updateImageMetadata,
+    handleFileUpload,
+    cancel,
+  };
 };
 
 import React from "react";
+import FilenameDisplay from "@/components/file-name-display";
 
 interface SVGRendererProps {
   svgContent: string;
@@ -173,10 +188,22 @@ function SaveAsPngButton({
 }
 
 export function SVGTool() {
-  const { svgContent, imageMetadata, handleFileUpload, cancel } =
-    useFileUploader();
+  const {
+    svgContent,
+    imageMetadata,
+    updateImageMetadata,
+    handleFileUpload,
+    cancel,
+  } = useFileUploader();
 
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
+
+  function updateFileName(newName: string) {
+    if (imageMetadata) {
+      const newMetadata = { ...imageMetadata, name: newName };
+      updateImageMetadata(newMetadata);
+    }
+  }
 
   if (!imageMetadata)
     return (
@@ -201,7 +228,10 @@ export function SVGTool() {
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       <SVGRenderer svgContent={svgContent} />
-      <p>{imageMetadata.name}</p>
+      <FilenameDisplay
+        initialName={imageMetadata.name}
+        onSave={(newName) => updateFileName(newName)}
+      />
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
