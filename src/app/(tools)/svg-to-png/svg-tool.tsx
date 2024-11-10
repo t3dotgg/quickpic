@@ -213,7 +213,7 @@ export function SVGTool() {
       </p>
       <div className="flex gap-2">
         {[1, 2, 4, 8, 16, 32, 64].map((value) => (
-            <button
+          <button
             key={value}
             onClick={() => {
               setnumber(value);
@@ -221,12 +221,12 @@ export function SVGTool() {
             }}
             className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
               scale === value && !customnumberVisible
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
             }`}
-            >
+          >
             {value}x
-            </button>
+          </button>
         ))}
         <button
           onClick={() => setCustomnumberVisible(!customnumberVisible)}
@@ -248,7 +248,7 @@ export function SVGTool() {
             onChange={(e) => {
               const value = parseFloat(e.target.value);
               if (value > 0) {
-          setnumber(value);
+                setnumber(value);
               }
             }}
             className="rounded-md border px-2 py-1 text-sm text-black"
