@@ -192,7 +192,7 @@ export function RoundedTool() {
   const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
   const [background, setBackground] = useLocalStorage<BackgroundOption>(
     "roundedTool_background",
-    "transparent"
+    "transparent",
   );
 
   if (!imageMetadata)
