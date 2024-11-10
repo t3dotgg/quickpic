@@ -208,7 +208,7 @@ export function SVGTool() {
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
       <p>
-        numberd size: {imageMetadata.width * scale}px x{" "}
+        Scaled size: {imageMetadata.width * scale}px x{" "}
         {imageMetadata.height * scale}px
       </p>
       <div className="flex gap-2">
