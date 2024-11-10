@@ -2,7 +2,7 @@
 import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-
+import React from "react";
 import { type ChangeEvent } from "react";
 
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
@@ -75,17 +75,23 @@ function useSvgConverter(props: {
 }
 
 export const useFileUploader = () => {
-  const [svgContent, setSvgContent] = useState<string>("");
+  const [uploadedImages, setUploadedImages] = useState<
+    {
+      metadata: {
+        width: number;
+        height: number;
+        name: string;
+      };
+      svgContent: string;
 
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
+      cancel: () => void;
+    }[]
+  >([]);
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+    const files = event.target.files;
+    if (!files) return;
+    for (const file of files) {
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
@@ -97,22 +103,29 @@ export const useFileUploader = () => {
         const width = parseInt(svgElement.getAttribute("width") ?? "300");
         const height = parseInt(svgElement.getAttribute("height") ?? "150");
 
-        setSvgContent(content);
-        setImageMetadata({ width, height, name: file.name });
+        const cancel = () => {
+          setUploadedImages((prevImages) =>
+            [...prevImages].filter((image) => {
+              return image.metadata.name !== file.name;
+            }),
+          );
+        };
+
+        setUploadedImages((prevImages) => [
+          ...prevImages,
+          {
+            svgContent: content,
+            metadata: { width, height, name: file.name },
+            cancel,
+          },
+        ]);
       };
       reader.readAsText(file);
     }
   };
 
-  const cancel = () => {
-    setSvgContent("");
-    setImageMetadata(null);
-  };
-
-  return { svgContent, imageMetadata, handleFileUpload, cancel };
+  return { handleFileUpload, uploadedImages };
 };
-
-import React from "react";
 
 interface SVGRendererProps {
   svgContent: string;
@@ -173,12 +186,9 @@ function SaveAsPngButton({
 }
 
 export function SVGTool() {
-  const { svgContent, imageMetadata, handleFileUpload, cancel } =
-    useFileUploader();
+  const { handleFileUpload, uploadedImages } = useFileUploader();
 
-  const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
-
-  if (!imageMetadata)
+  if (!uploadedImages.length)
     return (
       <div className="flex flex-col gap-4 p-4">
         <p className="text-center">
@@ -192,6 +202,7 @@ export function SVGTool() {
               onChange={handleFileUpload}
               accept=".svg"
               className="hidden"
+              multiple
             />
           </label>
         </div>
@@ -199,8 +210,38 @@ export function SVGTool() {
     );
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
-      <SVGRenderer svgContent={svgContent} />
+    <div className="flex flex-col items-center justify-center gap-10 p-4 text-2xl">
+      {uploadedImages.map(({ svgContent, metadata, cancel }) => {
+        return (
+          <DownloadBlock
+            content={svgContent}
+            imageMetadata={metadata}
+            cancel={cancel}
+            key={metadata.name}
+          ></DownloadBlock>
+        );
+      })}
+    </div>
+  );
+}
+
+const DownloadBlock = ({
+  content,
+  imageMetadata,
+  cancel,
+}: {
+  content: string;
+  imageMetadata: { width: number; height: number; name: string };
+  cancel: () => void;
+}): React.JSX.Element => {
+  const [scale, setScale] = useLocalStorage<Scale>(
+    "svgTool_" + imageMetadata.name,
+    1,
+  );
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-4">
+      <SVGRenderer svgContent={content} />
       <p>{imageMetadata.name}</p>
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
@@ -226,7 +267,7 @@ export function SVGTool() {
       </div>
       <div className="flex gap-2">
         <SaveAsPngButton
-          svgContent={svgContent}
+          svgContent={content}
           scale={scale}
           imageMetadata={imageMetadata}
         />
@@ -239,4 +280,4 @@ export function SVGTool() {
       </div>
     </div>
   );
-}
+};
