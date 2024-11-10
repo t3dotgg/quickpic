@@ -7,9 +7,9 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white"
+    "black" | "white" | "accent"
   >("squareTool_backgroundColor", "white");
-
+  const [accentColor, setAccentColor] = useState<string>("rgb(255,255,255)");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
@@ -30,7 +30,7 @@ export const SquareTool: React.FC = () => {
   const handleBackgroundColorChange = (
     event: ChangeEvent<HTMLInputElement>,
   ) => {
-    const color = event.target.value as "black" | "white";
+    const color = event.target.value as "black" | "white" | "accent";
     setBackgroundColor(color);
   };
 
@@ -49,10 +49,71 @@ export const SquareTool: React.FC = () => {
     }
   };
 
+  const calculateAccentColor = (imgSrc: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+          ).data;
+          const colorMap = new Map<string, number>();
+
+          // Sample every 4th pixel to improve performance
+          for (let i = 0; i < imageData.length; i += 16) {
+            const r = imageData[i];
+            const g = imageData[i + 1];
+            const b = imageData[i + 2];
+
+            // Skip white and near-white colors
+            if (r !== undefined && g !== undefined && b !== undefined) {
+              if (r > 240 && g > 240 && b > 240) continue;
+
+              const color = `rgb(${r},${g},${b})`;
+              colorMap.set(color, (colorMap.get(color) || 0) + 1);
+            }
+          }
+
+          let maxCount = 0;
+          let dominantColor = "white"; // Default to white if no dominant color found
+
+          colorMap.forEach((count, color) => {
+            if (count > maxCount) {
+              maxCount = count;
+              dominantColor = color;
+            }
+          });
+          console.log(dominantColor);
+          resolve(dominantColor);
+        } else {
+          resolve("white");
+        }
+      };
+      img.src = imgSrc;
+    });
+  };
+
   useEffect(() => {
     if (imageFile) {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
+        const imgSrc = reader.result as string;
+
+        // Calculate accent color first
+        if (backgroundColor === "accent") {
+          const dominantColor = await calculateAccentColor(imgSrc);
+          setAccentColor(dominantColor);
+        }
+
         const img = new Image();
         img.onload = () => {
           const maxDim = Math.max(img.width, img.height);
@@ -66,8 +127,15 @@ export const SquareTool: React.FC = () => {
           canvas.width = maxDim;
           canvas.height = maxDim;
           const ctx = canvas.getContext("2d");
+
           if (ctx) {
-            ctx.fillStyle = backgroundColor;
+            // Set the background color
+            if (backgroundColor === "accent") {
+              ctx.fillStyle = accentColor;
+            } else {
+              ctx.fillStyle = backgroundColor;
+            }
+
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             const x = (maxDim - img.width) / 2;
             const y = (maxDim - img.height) / 2;
@@ -75,9 +143,9 @@ export const SquareTool: React.FC = () => {
             const dataUrl = canvas.toDataURL("image/png");
             setCanvasDataUrl(dataUrl);
 
-            // Create a smaller canvas for the preview
+            // Create preview
             const previewCanvas = document.createElement("canvas");
-            const previewSize = 200; // Set desired preview size
+            const previewSize = 200;
             previewCanvas.width = previewSize;
             previewCanvas.height = previewSize;
             const previewCtx = previewCanvas.getContext("2d");
@@ -98,9 +166,7 @@ export const SquareTool: React.FC = () => {
             }
           }
         };
-        if (typeof reader.result === "string") {
-          img.src = reader.result;
-        }
+        img.src = imgSrc;
       };
       reader.readAsDataURL(imageFile);
     } else {
@@ -108,7 +174,9 @@ export const SquareTool: React.FC = () => {
       setCanvasDataUrl(null);
       setImageMetadata(null);
     }
-  }, [imageFile, backgroundColor]);
+  }, [imageFile, backgroundColor, accentColor]);
+
+  // Rest of the component remains the same...
 
   if (!imageMetadata) {
     return (
@@ -143,7 +211,7 @@ export const SquareTool: React.FC = () => {
         {Math.max(imageMetadata.width, imageMetadata.height)}px
       </p>
 
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <label className="inline-flex items-center">
           <input
             type="radio"
@@ -163,6 +231,16 @@ export const SquareTool: React.FC = () => {
             className="form-radio text-blue-600"
           />
           <span className="ml-2">Black Background</span>
+        </label>
+        <label className="inline-flex items-center">
+          <input
+            type="radio"
+            value="accent"
+            checked={backgroundColor === "accent"}
+            onChange={handleBackgroundColorChange}
+            className="form-radio text-blue-600"
+          />
+          <span className="ml-2">Accent Background</span>
         </label>
       </div>
 
