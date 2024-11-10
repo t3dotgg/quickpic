@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
+import ColorPicker from "@/components/ColorPicker";
+
+const WHITE_COLOR = "#ffffff";
+const BLACK_COLOR = "#000000";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useState<"black" | "white">(
-    "white"
-  );
+  const [backgroundColor, setBackgroundColor] = useState(WHITE_COLOR);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
@@ -28,7 +30,7 @@ export const SquareTool: React.FC = () => {
   const handleBackgroundColorChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const color = event.target.value as "black" | "white";
+    const color = event.target.value;
     setBackgroundColor(color);
   };
 
@@ -145,8 +147,8 @@ export const SquareTool: React.FC = () => {
         <label className="inline-flex items-center">
           <input
             type="radio"
-            value="white"
-            checked={backgroundColor === "white"}
+            value={WHITE_COLOR}
+            checked={backgroundColor === WHITE_COLOR}
             onChange={handleBackgroundColorChange}
             className="form-radio text-blue-600"
           />
@@ -155,13 +157,24 @@ export const SquareTool: React.FC = () => {
         <label className="inline-flex items-center">
           <input
             type="radio"
-            value="black"
-            checked={backgroundColor === "black"}
+            value={BLACK_COLOR}
+            checked={backgroundColor === BLACK_COLOR}
             onChange={handleBackgroundColorChange}
             className="form-radio text-blue-600"
           />
           <span className="ml-2">Black Background</span>
         </label>
+      </div>
+
+      <div>
+        <label htmlFor="custom-color">
+          <span className="mr-2">Custom Background Color:</span>
+        </label>
+        <ColorPicker
+          value={backgroundColor}
+          onChange={setBackgroundColor}
+          id="custom-color"
+        />
       </div>
 
       <div className="flex gap-2">
