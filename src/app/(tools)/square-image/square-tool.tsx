@@ -15,20 +15,21 @@ const ColorPicker = ({
 
   return (
     <>
+      {/** issue: input can't be styled */}
+      {/** https://stackoverflow.com/questions/48832432/rounded-input-type-color */}
+      <input
+        ref={refInput}
+        type="color"
+        className="invisible w-0"
+        value={value}
+        onChange={onChange}
+      />
       <button
         onClick={() => refInput.current?.click()}
         className="size-8 shrink-0 rounded-full border border-white"
         style={{ backgroundColor: value }}
       >
-        {/** issue: input can't be styled */}
-        {/** https://stackoverflow.com/questions/48832432/rounded-input-type-color */}
-        <input
-          ref={refInput}
-          type="color"
-          className="invisible"
-          value={value}
-          onChange={onChange}
-        />
+
       </button>
     </>
   );
