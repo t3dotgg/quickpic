@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "check": "next lint && tsc --noEmit",
+    "check": "next lint && tsc --noEmit && pnpm run format:check",
     "dev": "next dev --turbo",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
