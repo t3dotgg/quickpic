@@ -39,16 +39,22 @@ function useSvgConverter(props: {
     };
   }, [props.svgContent, props.scale, props.imageMetadata]);
 
+  const blobUrlRef = React.useRef<string | null>(null);
+
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
     // Trigger a "save image" of the resulting canvas content
-    const saveImage = () => {
+    const saveImage = async () => {
       if (props.canvas) {
-        const dataURL = props.canvas.toDataURL("image/png");
+        const blob = await createBlob(props.canvas);
+        if (blobUrlRef.current !== null) {
+          URL.revokeObjectURL(blobUrlRef.current);
+        }
+        blobUrlRef.current = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.href = dataURL;
+        link.href = blobUrlRef.current;
         const svgFileName = props.imageMetadata.name ?? "svg_converted";
 
         // Remove the .svg extension
@@ -112,6 +118,7 @@ export const useFileUploader = () => {
 };
 
 import React from "react";
+import createBlob from "@/app/utils/create-blob";
 
 interface SVGRendererProps {
   svgContent: string;

@@ -3,6 +3,7 @@ import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
 import { ChangeEvent } from "react";
 import React from "react";
+import createBlob from "@/app/utils/create-blob";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -23,15 +24,21 @@ function useImageConverter(props: {
     };
   }, [props.imageContent, props.imageMetadata]);
 
+  const blobUrlRef = React.useRef<string | null>(null);
+
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
-    const saveImage = () => {
+    const saveImage = async () => {
       if (props.canvas) {
-        const dataURL = props.canvas.toDataURL("image/png");
+        const blob = await createBlob(props.canvas);
+        if (blobUrlRef.current !== null) {
+          URL.revokeObjectURL(blobUrlRef.current);
+        }
+        blobUrlRef.current = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.href = dataURL;
+        link.href = blobUrlRef.current;
         const imageFileName = props.imageMetadata.name ?? "image_converted";
         link.download = `${imageFileName.replace(/\..+$/, "")}.png`;
         link.click();
