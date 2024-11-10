@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
+import { ChromePicker } from "react-color";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useState<"black" | "white">(
-    "white"
-  );
+  const [backgroundColor, setBackgroundColor] = useState<
+    "black" | "white" | "transparent" | "custom"
+  >("white");
+  const [customColor, setCustomColor] = useState<string>("#FF0000");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
@@ -28,7 +30,11 @@ export const SquareTool: React.FC = () => {
   const handleBackgroundColorChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const color = event.target.value as "black" | "white";
+    const color = event.target.value as
+      | "black"
+      | "white"
+      | "transparent"
+      | "custom";
     setBackgroundColor(color);
   };
 
@@ -65,7 +71,8 @@ export const SquareTool: React.FC = () => {
           canvas.height = maxDim;
           const ctx = canvas.getContext("2d");
           if (ctx) {
-            ctx.fillStyle = backgroundColor;
+            ctx.fillStyle =
+              backgroundColor === "custom" ? customColor : backgroundColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             const x = (maxDim - img.width) / 2;
             const y = (maxDim - img.height) / 2;
@@ -106,7 +113,7 @@ export const SquareTool: React.FC = () => {
       setCanvasDataUrl(null);
       setImageMetadata(null);
     }
-  }, [imageFile, backgroundColor]);
+  }, [imageFile, backgroundColor, customColor]);
 
   if (!imageMetadata) {
     return (
@@ -129,6 +136,32 @@ export const SquareTool: React.FC = () => {
     );
   }
 
+  const radioButtons = (buttons: string[]) => {
+    return buttons.map((val) => {
+      return (
+        <label className="inline-flex items-center">
+          <input
+            type="radio"
+            value={val}
+            checked={backgroundColor === val}
+            onChange={handleBackgroundColorChange}
+            className="form-radio text-blue-600"
+          />
+          <span className="ml-2">
+            {val.replace(
+              /\w\S*/g,
+              (text) =>
+                text.charAt(0).toUpperCase() +
+                text.substring(1).toLowerCase() +
+                " "
+            )}
+            Background
+          </span>
+        </label>
+      );
+    });
+  };
+
   return (
     <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
       {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
@@ -141,28 +174,23 @@ export const SquareTool: React.FC = () => {
         {Math.max(imageMetadata.width, imageMetadata.height)}px
       </p>
 
-      <div className="flex gap-2">
-        <label className="inline-flex items-center">
-          <input
-            type="radio"
-            value="white"
-            checked={backgroundColor === "white"}
-            onChange={handleBackgroundColorChange}
-            className="form-radio text-blue-600"
-          />
-          <span className="ml-2">White Background</span>
-        </label>
-        <label className="inline-flex items-center">
-          <input
-            type="radio"
-            value="black"
-            checked={backgroundColor === "black"}
-            onChange={handleBackgroundColorChange}
-            className="form-radio text-blue-600"
-          />
-          <span className="ml-2">Black Background</span>
-        </label>
+      <div className="grid grid-rows-2 grid-cols-2 gap-x-4 gap-y-2">
+        {radioButtons(["white", "black", "transparent", "custom"])}
       </div>
+
+      {backgroundColor === "custom" && (
+        <div className="flex gap-2">
+          <label className="inline-flex items-center">
+            <ChromePicker
+              color={customColor}
+              onChange={(color) => {
+                setCustomColor(color.hex);
+              }}
+              disableAlpha={true}
+            />
+          </label>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <button
@@ -170,7 +198,7 @@ export const SquareTool: React.FC = () => {
             plausible("create-square-image");
             handleSaveImage();
           }}
-          className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
+          className="px-3 py-2 bg-green-700 text-sm text-white font-semibold rounded-md shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
         >
           Save Image
         </button>
@@ -181,7 +209,7 @@ export const SquareTool: React.FC = () => {
             setCanvasDataUrl(null);
             setImageMetadata(null);
           }}
-          className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
+          className="px-3 py-2 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
         >
           Cancel
         </button>
