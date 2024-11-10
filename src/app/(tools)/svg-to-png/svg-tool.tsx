@@ -4,7 +4,20 @@ import { useMemo, useState } from "react";
 
 import { ChangeEvent } from "react";
 
-type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
+type Scale = 
+  | { type: 'preset'; value: 1 | 2 | 4 | 8 | 16 | 32 | 64 }
+  | { type: 'custom'; value: number }
+  | { type: 'xy'; x: number; y: number };
+  
+function calculateScaledDimensions(width: number, height: number, scale: Scale) {
+  if (scale.type === 'preset' || scale.type === 'custom') {
+    return { width: width * scale.value, height: height * scale.value };
+  } else if (scale.type === "xy") {
+    return { width: scale.x, height: scale.y };
+  } else {
+    return { width: width, height: height };
+  }
+}
 
 function scaleSvg(svgContent: string, scale: Scale) {
   const parser = new DOMParser();
@@ -13,8 +26,12 @@ function scaleSvg(svgContent: string, scale: Scale) {
   const width = parseInt(svgElement.getAttribute("width") || "300");
   const height = parseInt(svgElement.getAttribute("height") || "150");
 
-  const scaledWidth = width * scale;
-  const scaledHeight = height * scale;
+
+  const { width: scaledWidth, height: scaledHeight } = calculateScaledDimensions(
+    width,
+    height,
+    scale
+  );
 
   svgElement.setAttribute("width", scaledWidth.toString());
   svgElement.setAttribute("height", scaledHeight.toString());
@@ -32,9 +49,15 @@ function useSvgConverter(props: {
   const { width, height, scaledSvg } = useMemo(() => {
     const scaledSvg = scaleSvg(props.svgContent, props.scale);
 
+    const { width: scaledWidth, height: scaledHeight } = calculateScaledDimensions(
+      props.imageMetadata.width,
+      props.imageMetadata.height,
+      props.scale
+    );
+  
     return {
-      width: props.imageMetadata.width * props.scale,
-      height: props.imageMetadata.height * props.scale,
+      width: scaledWidth,
+      height: scaledHeight,
       scaledSvg,
     };
   }, [props.svgContent, props.scale, props.imageMetadata]);
@@ -52,7 +75,11 @@ function useSvgConverter(props: {
         const svgFileName = props.imageMetadata.name ?? "svg_converted";
 
         // Remove the .svg extension
-        link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
+        if (props.scale.type === "preset" || props.scale.type === "custom") {
+          link.download = `${svgFileName.replace(".svg", "")}-${props.scale.value}x.png`;
+        } else if (props.scale.type === "xy") {
+          link.download = `${svgFileName.replace(".svg", "")}-${props.scale.x}x${props.scale.y}.png`;
+        }
         link.click();
       }
     };
@@ -175,7 +202,15 @@ export function SVGTool() {
   const { svgContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
-  const [scale, setScale] = useState<Scale>(1);
+  const [scale, setScale] = useState<Scale>({ type: "preset", value: 1 });
+  const scaledDimensions = useMemo(() => {
+    if (!imageMetadata) return { width: 0, height: 0 };
+    return calculateScaledDimensions(imageMetadata.width, imageMetadata.height, scale);
+  }, [imageMetadata, scale]);
+
+  // Maximum canvas area in most browsers, exceeding will cause the image to be empty.
+  // Source: https://stackoverflow.com/a/11585939
+  const MAX_TOTAL_PIXELS = 268_435_456;
 
   if (!imageMetadata)
     return (
@@ -205,16 +240,20 @@ export function SVGTool() {
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
       <p>
-        Scaled size: {imageMetadata.width * scale}px x{" "}
-        {imageMetadata.height * scale}px
+        Scaled size: {scaledDimensions.width}px x {scaledDimensions.height}px
       </p>
+      {scaledDimensions.height * scaledDimensions.width > MAX_TOTAL_PIXELS ? (
+        <p className="text-red-500 text-sm text-center">
+          Warning: Scaled size is too large for most browsers to scale, this scaling may not work.
+        </p>
+      ) : null}
       <div className="flex gap-2">
-        {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
+        {([1, 2, 4, 8, 16, 32, 64] as const).map((value) => (
           <button
             key={value}
-            onClick={() => setScale(value)}
+            onClick={() => setScale({ type: "preset", value })}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              scale === value
+              scale.type === "preset" && scale.value === value
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200 text-gray-800 hover:bg-gray-300"
             }`}
@@ -222,6 +261,82 @@ export function SVGTool() {
             {value}x
           </button>
         ))}
+        {/* Custom Scale */}
+        <input
+          type="number"
+          min="1"
+          step="0.1"
+          className={`w-20 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+            scale.type === "custom"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === '') {
+              setScale({ type: "preset", value: 1 });
+            } else {
+              const numValue = parseFloat(value);
+              if (!isNaN(numValue)) {
+                setScale({ type: "custom", value: numValue });
+              }
+            }
+          }}
+          value={scale.type === "custom" ? scale.value : ""}
+          placeholder="1.0"
+        />
+      </div>
+      <div className="flex gap-2">
+        {/* Custom X/Y */}
+        {scale.type === "xy" ? (
+          <div className="flex gap-2">
+            <input
+              type="number"
+              min="1"
+              step="0.1"
+              className="w-20 px-3 py-1 rounded-md text-sm font-medium bg-blue-600 text-white"
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setScale({ type: "xy", x: 1, y: scale.y });
+                } else {
+                  const numValue = parseFloat(value);
+                  if (!isNaN(numValue)) {
+                    setScale({ type: "xy", x: numValue, y: scale.y });
+                  }
+                }
+              }}
+              placeholder="X"
+            />
+            <input
+              type="number"
+              min="1"
+              step="0.1"
+              className="w-20 px-3 py-1 rounded-md text-sm font-medium bg-blue-600 text-white"
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setScale({ type: "xy", x: scale.x, y: 1 });
+                } else {
+                  const numValue = parseFloat(value);
+                  if (!isNaN(numValue)) {
+                    setScale({ type: "xy", x: scale.x, y: numValue });
+                  }
+                }
+              }}
+              placeholder="Y"
+            />
+          </div>
+        ) : (
+          <button
+          onClick={() => setScale({ type: "xy", x: 1, y: 1 })}
+          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+            "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          Custom X/Y
+        </button>
+        )}
       </div>
       <div className="flex gap-2">
         <SaveAsPngButton
