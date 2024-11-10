@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function SVGToolPage() {
   return (
-    <AppLayout pageName="SVG to PNG converter" >
+    <AppLayout pageName="SVG to PNG converter">
       <SVGTool />
     </AppLayout>
   );

@@ -1,13 +1,21 @@
 import Image from "next/image";
+import Link from "next/link";
+
+/**
+ * Icons
+ */
 import {
   Home,
   ArrowLeftRight,
   Scan,
   SquareSquare,
   ChevronDown,
-  Github
+  Github,
 } from "lucide-react";
 
+/**
+ * Components
+ */
 import {
   Sidebar,
   SidebarContent,
@@ -25,7 +33,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import Link from "next/link";
 
 // Menu links.
 const menu_links = [
@@ -51,12 +58,18 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Link
-          className="flex items-center gap-2 rounded-xl dark:bg-black bg-white p-3 shadow"
+          className="flex items-center gap-2 rounded-xl bg-white p-3 shadow dark:bg-black"
           href="/"
         >
-          <Image src="/logo.svg" height={40} width={40} alt="QuickPic Logo" className="p-2 bg-black rounded-xl" />
+          <Image
+            src="/logo.svg"
+            height={40}
+            width={40}
+            alt="QuickPic Logo"
+            className="rounded-xl bg-black p-2"
+          />
           <p className="flex flex-col font-bold">
-            QuickPick
+            QuickPic
             <span className="block text-xs font-extralight opacity-50">
               By Theo
             </span>
@@ -67,26 +80,26 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-                <SidebarMenuItem >
-                  <SidebarMenuButton asChild>
-                    <a href='/'>
-                      <Home />
-                      <span>Home</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/">
+                    <Home />
+                    <span>Home</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <Collapsible defaultOpen className="group/collapsible">
           <SidebarGroup>
             <SidebarGroupContent>
-                <SidebarGroupLabel asChild>
+              <SidebarGroupLabel asChild>
                 <CollapsibleTrigger className="w-full">
-                    Tools
-                    <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                  Tools
+                  <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
                 </CollapsibleTrigger>
-                </SidebarGroupLabel>
+              </SidebarGroupLabel>
             </SidebarGroupContent>
             <CollapsibleContent>
               <SidebarGroupContent>
@@ -108,14 +121,14 @@ export function AppSidebar() {
         </Collapsible>
       </SidebarContent>
       <SidebarFooter className="p-5">
-          <a 
-            href="https://github.com/t3dotgg/quickpic" 
-            className="text-xs flex items-center gap-2 opacity-50 hover:opacity-100 transition-all" 
-            target="_blank"
-          >
-            <Github size={20} />
-            View on GitHub
-          </a>
+        <a
+          href="https://github.com/t3dotgg/quickpic"
+          className="flex items-center gap-2 text-xs opacity-50 transition-all hover:opacity-100"
+          target="_blank"
+        >
+          <Github size={20} />
+          View on GitHub
+        </a>
       </SidebarFooter>
     </Sidebar>
   );

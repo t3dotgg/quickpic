@@ -12,5 +12,5 @@ export default function SquareToolPage() {
     <AppLayout pageName="Square Image Generator">
       <SquareTool />
     </AppLayout>
-  )
+  );
 }

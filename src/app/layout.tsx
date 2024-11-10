@@ -40,12 +40,10 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} dark antialiased`}
-      >    
+      >
         <SidebarProvider>
           <AppSidebar />
-          <main className="w-full"> 
-            { children}
-          </main>
+          <main className="w-full">{children}</main>
         </SidebarProvider>
       </body>
     </html>
