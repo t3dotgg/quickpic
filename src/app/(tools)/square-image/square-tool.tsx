@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useState<"black" | "white">(
-    "white"
-  );
+  const [backgroundColor, setBackgroundColor] = useLocalStorage<
+    "black" | "white"
+  >("squareTool_backgroundColor", "white");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{

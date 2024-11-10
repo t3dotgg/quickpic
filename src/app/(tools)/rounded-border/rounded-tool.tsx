@@ -2,6 +2,7 @@
 import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
 import { ChangeEvent } from "react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import React from "react";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
@@ -188,8 +189,11 @@ export function RoundedTool() {
   const { imageContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
-  const [radius, setRadius] = useState<Radius>(2);
-  const [background, setBackground] = useState<BackgroundOption>("transparent");
+  const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
+  const [background, setBackground] = useLocalStorage<BackgroundOption>(
+    "roundedTool_background",
+    "transparent"
+  );
 
   if (!imageMetadata)
     return (

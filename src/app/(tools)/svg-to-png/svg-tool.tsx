@@ -1,6 +1,7 @@
 "use client";
 import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { ChangeEvent } from "react";
 
@@ -175,7 +176,7 @@ export function SVGTool() {
   const { svgContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
-  const [scale, setScale] = useState<Scale>(1);
+  const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
 
   if (!imageMetadata)
     return (
