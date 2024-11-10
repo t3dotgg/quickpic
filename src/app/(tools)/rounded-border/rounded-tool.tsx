@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils"
 import { ChevronsUpDown, PaintBucket, Scan } from "lucide-react"
 import { usePlausible } from "next-plausible"
 import { useMemo, useState } from "react"
-import { ChangeEvent } from "react"
+import type { ChangeEvent } from "react"
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import React from "react"
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64
@@ -29,8 +30,8 @@ function useImageConverter(props: {
     return {
       width: props.imageMetadata.width,
       height: props.imageMetadata.height,
-    }
-  }, [props.imageContent, props.imageMetadata])
+    };
+  }, [props.imageMetadata]);
 
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d")
@@ -138,7 +139,7 @@ const ImageRenderer: React.FC<ImageRendererProps> = ({
   }, [imageContent, radius])
 
   return (
-    <div ref={containerRef} className="relative max-w-full max-h-full">
+    <div ref={containerRef} className="relative max-h-full max-w-full">
       <div
         className="absolute inset-0"
         style={{ backgroundColor: background, borderRadius: 0 }}
@@ -165,8 +166,8 @@ function SaveAsPngButton({
   imageMetadata: { width: number; height: number; name: string }
 }) {
   const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null
-  )
+    null,
+  );
   const { convertToPng, canvasProps } = useImageConverter({
     canvas: canvasRef,
     imageContent,
@@ -182,8 +183,8 @@ function SaveAsPngButton({
       <canvas ref={setCanvasRef} {...canvasProps} hidden />
       <Button
         onClick={() => {
-          plausible("convert-image-to-png")
-          convertToPng()
+          plausible("convert-image-to-png");
+          void convertToPng();
         }}
       >
         Save as PNG
@@ -196,12 +197,15 @@ export function RoundedTool() {
   const { imageContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader()
 
-  const [radius, setRadius] = useState<Radius>(2)
-  const [background, setBackground] = useState<BackgroundOption>("transparent")
+  const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
+  const [background, setBackground] = useLocalStorage<BackgroundOption>(
+    "roundedTool_background",
+    "transparent",
+  );
 
   if (!imageMetadata)
     return (
-      <div className="flex flex-col p-4 gap-4">
+      <div className="flex flex-col gap-4 p-4">
         <p className="text-center">Round the corners of any image</p>
         <div className="flex justify-center">
           <label
@@ -223,7 +227,7 @@ export function RoundedTool() {
     )
 
   return (
-    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       <ImageRenderer
         imageContent={imageContent}
         radius={radius}

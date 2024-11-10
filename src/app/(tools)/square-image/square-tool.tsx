@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, ChangeEvent } from "react"
+import React, { useState, useEffect, type ChangeEvent } from "react"
 import { usePlausible } from "next-plausible"
 import {
   DropdownMenu,
@@ -11,14 +11,16 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button"
 import { ChevronsUpDown, PaintBucket } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 export const SquareTool: React.FC = () => {
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [backgroundColor, setBackgroundColor] = useState<"black" | "white">(
-    "white"
-  )
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [backgroundColor, setBackgroundColor] = useLocalStorage<
+    "black" | "white"
+  >("squareTool_backgroundColor", "white");
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
     width: number
     height: number
@@ -91,10 +93,10 @@ export const SquareTool: React.FC = () => {
                 0,
                 0,
                 previewSize,
-                previewSize
-              )
-              const previewDataUrl = previewCanvas.toDataURL("image/png")
-              setPreviewUrl(previewDataUrl)
+                previewSize,
+              );
+              const previewDataUrl = previewCanvas.toDataURL("image/png");
+              setPreviewUrl(previewDataUrl);
             }
           }
         }
@@ -112,7 +114,7 @@ export const SquareTool: React.FC = () => {
 
   if (!imageMetadata) {
     return (
-      <div className="flex flex-col p-4 gap-4">
+      <div className="flex flex-col gap-4 p-4">
         <p className="text-center">
           Create square images with custom backgrounds. Fast and free.
         </p>
@@ -137,7 +139,7 @@ export const SquareTool: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
       <p>{imageMetadata.name}</p>
       <p>
