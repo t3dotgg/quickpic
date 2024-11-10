@@ -2,7 +2,7 @@
 import { usePlausible } from "next-plausible";
 import { useMemo, useState } from "react";
 
-import { ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
 
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -10,8 +10,8 @@ function scaleSvg(svgContent: string, scale: Scale) {
   const parser = new DOMParser();
   const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgElement = svgDoc.documentElement;
-  const width = parseInt(svgElement.getAttribute("width") || "300");
-  const height = parseInt(svgElement.getAttribute("height") || "150");
+  const width = parseInt(svgElement.getAttribute("width") ?? "300");
+  const height = parseInt(svgElement.getAttribute("height") ?? "150");
 
   const scaledWidth = width * scale;
   const scaledHeight = height * scale;
@@ -93,8 +93,8 @@ export const useFileUploader = () => {
         const parser = new DOMParser();
         const svgDoc = parser.parseFromString(content, "image/svg+xml");
         const svgElement = svgDoc.documentElement;
-        const width = parseInt(svgElement.getAttribute("width") || "300");
-        const height = parseInt(svgElement.getAttribute("height") || "150");
+        const width = parseInt(svgElement.getAttribute("width") ?? "300");
+        const height = parseInt(svgElement.getAttribute("height") ?? "150");
 
         setSvgContent(content);
         setImageMetadata({ width, height, name: file.name });
@@ -161,7 +161,7 @@ function SaveAsPngButton({
       <button
         onClick={() => {
           plausible("convert-svg-to-png");
-          convertToPng();
+          void convertToPng();
         }}
         className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
       >

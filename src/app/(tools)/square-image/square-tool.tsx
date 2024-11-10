@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, type ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
 
 export const SquareTool: React.FC = () => {
