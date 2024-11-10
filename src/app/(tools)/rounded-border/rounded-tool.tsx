@@ -3,7 +3,8 @@
 import { FileDropProvider } from "@/app/providers/file-drop-provider";
 import { usePlausible } from "next-plausible";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChangeEvent } from "react";
+import type { ChangeEvent } from "react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -22,7 +23,7 @@ function useImageConverter(props: {
       width: props.imageMetadata.width,
       height: props.imageMetadata.height,
     };
-  }, [props.imageContent, props.imageMetadata]);
+  }, [props.imageMetadata]);
 
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d");
@@ -130,7 +131,7 @@ const ImageRenderer: React.FC<ImageRendererProps> = ({
   }, [imageContent, radius]);
 
   return (
-    <div ref={containerRef} className="relative max-w-full max-h-full">
+    <div ref={containerRef} className="relative max-h-full max-w-full">
       <div
         className="absolute inset-0"
         style={{ backgroundColor: background, borderRadius: 0 }}
@@ -156,7 +157,7 @@ function SaveAsPngButton({
   background: BackgroundOption;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null,);
   const { convertToPng, canvasProps } = useImageConverter({
     canvas: canvasRef,
     imageContent,
@@ -173,9 +174,9 @@ function SaveAsPngButton({
       <button
         onClick={() => {
           plausible("convert-image-to-png");
-          convertToPng();
+          void convertToPng();
         }}
-        className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
+        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
       >
         Save as PNG
       </button>
@@ -187,8 +188,11 @@ export function RoundedTool() {
   const { imageContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
-  const [radius, setRadius] = useState<Radius>(2);
-  const [background, setBackground] = useState<BackgroundOption>("transparent");
+  const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
+  const [background, setBackground] = useLocalStorage<BackgroundOption>(
+    "roundedTool_background",
+    "transparent",
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (

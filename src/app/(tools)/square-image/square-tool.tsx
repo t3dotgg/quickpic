@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, useRef } from "react";
-import { usePlausible } from "next-plausible";
 import { FileDropProvider } from "@/app/providers/file-drop-provider";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { usePlausible } from "next-plausible";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useState<"black" | "white">(
-    "white"
-  );
+  const [backgroundColor, setBackgroundColor] = useLocalStorage<
+    "black" | "white"
+  >("squareTool_backgroundColor", "white");
+
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<{
@@ -28,7 +30,7 @@ export const SquareTool: React.FC = () => {
   };
 
   const handleBackgroundColorChange = (
-    event: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>,
   ) => {
     const color = event.target.value as "black" | "white";
     setBackgroundColor(color);
@@ -91,7 +93,7 @@ export const SquareTool: React.FC = () => {
                 0,
                 0,
                 previewSize,
-                previewSize
+                previewSize,
               );
               const previewDataUrl = previewCanvas.toDataURL("image/png");
               setPreviewUrl(previewDataUrl);

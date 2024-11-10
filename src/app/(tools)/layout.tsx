@@ -2,10 +2,10 @@ import Link from "next/link";
 
 function BackButton() {
   return (
-    <div className="fixed top-4 left-4 z-50">
+    <div className="fixed left-4 top-4 z-50">
       <Link
         href="/"
-        className="px-3 py-1 text-gray-400 hover:text-gray-200 text-sm font-medium rounded-md transition-colors duration-200 flex items-center gap-2"
+        className="flex items-center gap-2 rounded-md px-3 py-1 text-sm font-medium text-gray-400 transition-colors duration-200 hover:text-gray-200"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

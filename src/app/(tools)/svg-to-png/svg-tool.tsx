@@ -2,7 +2,8 @@
 import { FileDropProvider } from "@/app/providers/file-drop-provider";
 import { usePlausible } from "next-plausible";
 import { useMemo, useRef, useState } from "react";
-import { ChangeEvent } from "react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { type ChangeEvent } from "react";
 
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -10,8 +11,8 @@ function scaleSvg(svgContent: string, scale: Scale) {
   const parser = new DOMParser();
   const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgElement = svgDoc.documentElement;
-  const width = parseInt(svgElement.getAttribute("width") || "300");
-  const height = parseInt(svgElement.getAttribute("height") || "150");
+  const width = parseInt(svgElement.getAttribute("width") ?? "300");
+  const height = parseInt(svgElement.getAttribute("height") ?? "150");
 
   const scaledWidth = width * scale;
   const scaledHeight = height * scale;
@@ -97,8 +98,8 @@ export const useFileUploader = () => {
         const parser = new DOMParser();
         const svgDoc = parser.parseFromString(content, "image/svg+xml");
         const svgElement = svgDoc.documentElement;
-        const width = parseInt(svgElement.getAttribute("width") || "300");
-        const height = parseInt(svgElement.getAttribute("height") || "150");
+        const width = parseInt(svgElement.getAttribute("width") ?? "300");
+        const height = parseInt(svgElement.getAttribute("height") ?? "150");
 
         setSvgContent(content);
         setImageMetadata({ width, height, name: file.name });
@@ -148,7 +149,7 @@ function SaveAsPngButton({
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null
+    null,
   );
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,
@@ -165,9 +166,9 @@ function SaveAsPngButton({
       <button
         onClick={() => {
           plausible("convert-svg-to-png");
-          convertToPng();
+          void convertToPng();
         }}
-        className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
+        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
       >
         Save as PNG
       </button>
@@ -179,7 +180,7 @@ export function SVGTool() {
   const { svgContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
-  const [scale, setScale] = useState<Scale>(1);
+  const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
