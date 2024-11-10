@@ -38,10 +38,6 @@ function parseSVGDimension(dim: string | null, defaultValue = 300) {
         return value * 96 / 72;
       case 'pc':
         return value * 96 / 6;
-      case 'em':
-      case 'rem':
-        // assuming 16px per em/rem
-        return value * 16;
       default:
         console.warn(`Unsupported unit "${unit}". Using default value ${defaultValue}px.`);
         return defaultValue;
