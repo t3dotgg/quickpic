@@ -235,7 +235,7 @@ export function RoundedTool() {
       <p>
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
-      <div className="flex flex-col items-center gap-2 w-full max-w-md">
+      <div className="flex w-full max-w-md flex-col items-center gap-2">
         <input
           type="range"
           min="0"
