@@ -174,7 +174,7 @@ export const SquareTool: React.FC = () => {
           }}
           className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
         >
-          Save Image
+          Save as PNG
         </button>
         <button
           onClick={() => {
@@ -185,7 +185,7 @@ export const SquareTool: React.FC = () => {
           }}
           className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
         >
-          Cancel
+          Back
         </button>
       </div>
     </div>

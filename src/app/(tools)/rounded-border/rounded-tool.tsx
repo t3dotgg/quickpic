@@ -267,7 +267,7 @@ export function RoundedTool() {
           onClick={cancel}
           className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
         >
-          Cancel
+          Back
         </button>
       </div>
     </div>
