@@ -265,6 +265,7 @@ export function SVGTool() {
         {/* Custom Scale */}
         <input
           type="number"
+          defaultValue={scale.type === "custom" ? scale.value : ""}
           min="1"
           step="0.1"
           className={`w-20 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
@@ -293,6 +294,7 @@ export function SVGTool() {
           <div className="flex gap-2">
             <input
               type="number"
+              defaultValue={scale.x}
               min="1"
               step="0.1"
               className="w-20 px-3 py-1 rounded-md text-sm font-medium bg-blue-600 text-white"
@@ -311,6 +313,7 @@ export function SVGTool() {
             />
             <input
               type="number"
+              defaultValue={scale.y}
               min="1"
               step="0.1"
               className="w-20 px-3 py-1 rounded-md text-sm font-medium bg-blue-600 text-white"
