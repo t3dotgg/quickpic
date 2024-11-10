@@ -39,14 +39,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint and Format Check
+      - name: Lint, format and typecheck
         run: |
-          pnpm run lint & \
-          pnpm run format:check & \
-          wait
-
-      - name: Type check
-        run: pnpm run typecheck
+          pnpm run check
 
   build:
     runs-on: ubuntu-latest
