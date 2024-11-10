@@ -1,24 +1,30 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ChangeEvent } from "react";
 
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
 
-function scaleSvg(svgContent: string, scale: Scale) {
+function scaleSvg(svgContent: string, scale: Scale, sWidth: number, sHeight: number) {
   const parser = new DOMParser();
   const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgElement = svgDoc.documentElement;
   const width = parseInt(svgElement.getAttribute("width") || "300");
   const height = parseInt(svgElement.getAttribute("height") || "150");
-
-  const scaledWidth = width * scale;
-  const scaledHeight = height * scale;
-
+  let scaledWidth = width;
+  let scaledHeight = height;
+  if (sWidth && sHeight) {
+    scaledWidth = sWidth;
+    scaledHeight = sHeight;
+  } else {
+    scaledWidth = width * scale;
+    scaledHeight = height * scale;
+  }
   svgElement.setAttribute("width", scaledWidth.toString());
   svgElement.setAttribute("height", scaledHeight.toString());
 
+  console.log(scaledWidth, scaledHeight);
   return new XMLSerializer().serializeToString(svgDoc);
 }
 
@@ -26,18 +32,20 @@ function useSvgConverter(props: {
   canvas: HTMLCanvasElement | null;
   svgContent: string;
   scale: Scale;
+  sHeight: number;
+  sWidth: number;
   fileName?: string;
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const { width, height, scaledSvg } = useMemo(() => {
-    const scaledSvg = scaleSvg(props.svgContent, props.scale);
+    const scaledSvg = scaleSvg(props.svgContent, props.scale, props.sWidth, props.sHeight);
 
     return {
-      width: props.imageMetadata.width * props.scale,
-      height: props.imageMetadata.height * props.scale,
+      width: props.imageMetadata.width * (props.sWidth || props.scale),
+      height: props.imageMetadata.height * (props.sHeight || props.scale),
       scaledSvg,
     };
-  }, [props.svgContent, props.scale, props.imageMetadata]);
+  }, [props.svgContent, props.scale, props.imageMetadata, props.sWidth, props.sHeight]);
 
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d");
@@ -52,7 +60,9 @@ function useSvgConverter(props: {
         const svgFileName = props.imageMetadata.name ?? "svg_converted";
 
         // Remove the .svg extension
-        link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
+        props.sWidth == 0 ?
+          link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png` :
+          link.download = `${svgFileName.replace(".svg", "")}-${props.sWidth}x${props.sHeight}.png`;
         link.click();
       }
     };
@@ -69,7 +79,7 @@ function useSvgConverter(props: {
 
   return {
     convertToPng,
-    canvasProps: { width: width, height: height },
+    canvasProps: { width: props.sWidth || width, height: props.sHeight || height },
   };
 }
 
@@ -137,10 +147,14 @@ const SVGRenderer: React.FC<SVGRendererProps> = ({ svgContent }) => {
 function SaveAsPngButton({
   svgContent,
   scale,
+  height,
+  width,
   imageMetadata,
 }: {
   svgContent: string;
   scale: Scale;
+  height: number;
+  width: number;
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
@@ -150,6 +164,8 @@ function SaveAsPngButton({
     canvas: canvasRef,
     svgContent,
     scale,
+    sHeight: height,
+    sWidth: width,
     imageMetadata,
   });
 
@@ -175,7 +191,10 @@ export function SVGTool() {
   const { svgContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
+  const [isCustom, setCustom] = useState<boolean>(false);
   const [scale, setScale] = useState<Scale>(1);
+  const [width, setWidth] = useState<number>(0);
+  const [height, setHeight] = useState<number>(0);
 
   if (!imageMetadata)
     return (
@@ -208,25 +227,55 @@ export function SVGTool() {
         Scaled size: {imageMetadata.width * scale}px x{" "}
         {imageMetadata.height * scale}px
       </p>
-      <div className="flex gap-2">
-        {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
-          <button
-            key={value}
-            onClick={() => setScale(value)}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              scale === value
+      {isCustom && (
+        <div className="flex gap-2">
+          <div>
+            <label>Width: </label>
+            <input className="text-black w-20 border-none outline-none p-2 h-9 rounded-md" value={width} onChange={(e) => {
+              if (!isNaN(Number(e.target.value))) {
+                setWidth(Number(e.target.value));
+              }
+            }} /> px
+          </div>
+          <div>
+            <label>Height: </label>
+            <input className="text-black w-20 border-none outline-none p-2 h-9 rounded-md" value={height} onChange={(e) => {
+              if (!isNaN(Number(e.target.value))) {
+                setHeight(Number(e.target.value));
+              }
+            }} /> px
+          </div>
+        </div>)
+      }
+
+      {!isCustom && (
+        <div className="flex gap-2">
+          {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
+            <button
+              key={value}
+              onClick={() => { setScale(value); setHeight(0); setWidth(0) }}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${scale === value
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {value}x
-          </button>
-        ))}
-      </div>
+                }`}
+            >
+              {value}x
+            </button>
+          ))}
+        </div>)
+      }
       <div className="flex gap-2">
+        <button
+          onClick={() => setCustom(!isCustom)}
+          className="px-3 py-1 rounded-md text-sm font-medium bg-blue-700 text-white hover:bg-blue-800 transition-colors"
+        >
+          {!isCustom ? "Custom scale" : "Exponential Scale"}
+        </button>
         <SaveAsPngButton
           svgContent={svgContent}
           scale={scale}
+          height={height}
+          width={width}
           imageMetadata={imageMetadata}
         />
         <button
@@ -237,5 +286,6 @@ export function SVGTool() {
         </button>
       </div>
     </div>
+
   );
 }
