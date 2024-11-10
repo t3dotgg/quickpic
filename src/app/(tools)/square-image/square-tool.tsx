@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import { usePlausible } from "next-plausible";
+import { DnDInput } from "@/components/DnDInput";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -17,8 +18,7 @@ export const SquareTool: React.FC = () => {
   } | null>(null);
   const plausible = usePlausible();
 
-  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleImageUpload = (file: File | undefined) => {
     if (file) {
       setImageFile(file);
       setImageMetadata({ width: 0, height: 0, name: file.name });
@@ -26,7 +26,7 @@ export const SquareTool: React.FC = () => {
   };
 
   const handleBackgroundColorChange = (
-    event: ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const color = event.target.value as "black" | "white";
     setBackgroundColor(color);
@@ -115,15 +115,7 @@ export const SquareTool: React.FC = () => {
           Create square images with custom backgrounds. Fast and free.
         </p>
         <div className="flex justify-center">
-          <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
-            <span>Upload Image</span>
-            <input
-              type="file"
-              onChange={handleImageUpload}
-              accept="image/*"
-              className="hidden"
-            />
-          </label>
+          <DnDInput onChange={handleImageUpload} />
         </div>
       </div>
     );
