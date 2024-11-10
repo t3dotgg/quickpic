@@ -176,7 +176,19 @@ export function SVGTool() {
   const { svgContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
+
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
+  const [customScale, setCustomScale] = useState<string>("");
+
+  const handleCustomScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCustomScale(value);
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue) && numericValue > 0) {
+      setScale(numericValue as Scale);
+    }
+  };
+
 
   if (!imageMetadata)
     return (
@@ -223,6 +235,13 @@ export function SVGTool() {
             {value}x
           </button>
         ))}
+        <input // inputbox for custom scale option - ZE
+          type="number"
+          value={customScale}
+          onChange={handleCustomScaleChange}
+          placeholder="Custom"
+          className="px-3 py-1 rounded-md text-sm font-medium bg-gray-200 text-gray-800 hover:bg-gray-300 w-24"
+        />
       </div>
       <div className="flex gap-2">
         <SaveAsPngButton
