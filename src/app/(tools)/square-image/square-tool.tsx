@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent, useRef } from "react";
 import { usePlausible } from "next-plausible";
+import { FileDropProvider } from "@/app/providers/file-drop-provider";
 
 export const SquareTool: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -16,6 +17,7 @@ export const SquareTool: React.FC = () => {
     name: string;
   } | null>(null);
   const plausible = usePlausible();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -108,84 +110,87 @@ export const SquareTool: React.FC = () => {
     }
   }, [imageFile, backgroundColor]);
 
-  if (!imageMetadata) {
-    return (
-      <div className="flex flex-col p-4 gap-4">
-        <p className="text-center">
-          Create square images with custom backgrounds. Fast and free.
-        </p>
-        <div className="flex justify-center">
-          <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
-            <span>Upload Image</span>
-            <input
-              type="file"
-              onChange={handleImageUpload}
-              accept="image/*"
-              className="hidden"
-            />
-          </label>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
-      {previewUrl && <img src={previewUrl} alt="Preview" className="mb-4" />}
-      <p>{imageMetadata.name}</p>
-      <p>
-        Original size: {imageMetadata.width}px x {imageMetadata.height}px
-      </p>
-      <p>
-        Square size: {Math.max(imageMetadata.width, imageMetadata.height)}px x{" "}
-        {Math.max(imageMetadata.width, imageMetadata.height)}px
-      </p>
+    <FileDropProvider inputRef={inputRef}>
+      {!imageMetadata ? (
+        <div className="flex flex-col p-4 gap-4">
+          <p className="text-center">
+            Create square images with custom backgrounds. Fast and free.
+          </p>
+          <div className="flex justify-center">
+            <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
+              <span>Upload Image</span>
+              <input
+                type="file"
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+                ref={inputRef}
+              />
+            </label>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+          {previewUrl && (
+            <img src={previewUrl} alt="Preview" className="mb-4" />
+          )}
+          <p>{imageMetadata.name}</p>
+          <p>
+            Original size: {imageMetadata.width}px x {imageMetadata.height}px
+          </p>
+          <p>
+            Square size: {Math.max(imageMetadata.width, imageMetadata.height)}px
+            x {Math.max(imageMetadata.width, imageMetadata.height)}px
+          </p>
 
-      <div className="flex gap-2">
-        <label className="inline-flex items-center">
-          <input
-            type="radio"
-            value="white"
-            checked={backgroundColor === "white"}
-            onChange={handleBackgroundColorChange}
-            className="form-radio text-blue-600"
-          />
-          <span className="ml-2">White Background</span>
-        </label>
-        <label className="inline-flex items-center">
-          <input
-            type="radio"
-            value="black"
-            checked={backgroundColor === "black"}
-            onChange={handleBackgroundColorChange}
-            className="form-radio text-blue-600"
-          />
-          <span className="ml-2">Black Background</span>
-        </label>
-      </div>
+          <div className="flex gap-2">
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                value="white"
+                checked={backgroundColor === "white"}
+                onChange={handleBackgroundColorChange}
+                className="form-radio text-blue-600"
+              />
+              <span className="ml-2">White Background</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                value="black"
+                checked={backgroundColor === "black"}
+                onChange={handleBackgroundColorChange}
+                className="form-radio text-blue-600"
+              />
+              <span className="ml-2">Black Background</span>
+            </label>
+          </div>
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => {
-            plausible("create-square-image");
-            handleSaveImage();
-          }}
-          className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
-        >
-          Save Image
-        </button>
-        <button
-          onClick={() => {
-            setImageFile(null);
-            setPreviewUrl(null);
-            setCanvasDataUrl(null);
-            setImageMetadata(null);
-          }}
-          className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                plausible("create-square-image");
+                handleSaveImage();
+              }}
+              className="px-4 py-2 bg-green-700 text-sm text-white font-semibold rounded-lg shadow-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition-colors duration-200"
+            >
+              Save Image
+            </button>
+            <button
+              onClick={() => {
+                setImageFile(null);
+                setPreviewUrl(null);
+                setCanvasDataUrl(null);
+                setImageMetadata(null);
+              }}
+              className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </FileDropProvider>
   );
 };

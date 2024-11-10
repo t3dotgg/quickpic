@@ -33,11 +33,9 @@ export default function ToolsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col justify-between min-h-screen p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+    <div className="flex flex-col min-h-screen p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <BackButton />
-      <main className="flex-grow flex flex-col items-center justify-center">
-        {children}
-      </main>
+      <main className="flex-1 h-full flex">{children}</main>
       <footer className="text-center text-sm text-gray-500 mt-8">
         <a
           href="https://github.com/t3dotgg/quickpic"

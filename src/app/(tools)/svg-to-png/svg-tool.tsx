@@ -1,7 +1,7 @@
 "use client";
+import { FileDropProvider } from "@/app/providers/file-drop-provider";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
-
+import { useMemo, useRef, useState } from "react";
 import { ChangeEvent } from "react";
 
 type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
@@ -52,7 +52,9 @@ function useSvgConverter(props: {
         const svgFileName = props.imageMetadata.name ?? "svg_converted";
 
         // Remove the .svg extension
-        link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
+        link.download = `${svgFileName.replace(".svg", "")}-${
+          props.scale
+        }x.png`;
         link.click();
       }
     };
@@ -64,7 +66,9 @@ function useSvgConverter(props: {
       saveImage();
     };
 
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`;
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+      scaledSvg
+    )}`;
   };
 
   return {
@@ -176,66 +180,69 @@ export function SVGTool() {
     useFileUploader();
 
   const [scale, setScale] = useState<Scale>(1);
-
-  if (!imageMetadata)
-    return (
-      <div className="flex flex-col p-4 gap-4">
-        <p className="text-center">
-          Make SVGs into PNGs. Also makes them bigger. (100% free btw.)
-        </p>
-        <div className="flex justify-center">
-          <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
-            <span>Upload SVG</span>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              accept=".svg"
-              className="hidden"
-            />
-          </label>
-        </div>
-      </div>
-    );
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
-      <SVGRenderer svgContent={svgContent} />
-      <p>{imageMetadata.name}</p>
-      <p>
-        Original size: {imageMetadata.width}px x {imageMetadata.height}px
-      </p>
-      <p>
-        Scaled size: {imageMetadata.width * scale}px x{" "}
-        {imageMetadata.height * scale}px
-      </p>
-      <div className="flex gap-2">
-        {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
-          <button
-            key={value}
-            onClick={() => setScale(value)}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              scale === value
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {value}x
-          </button>
-        ))}
-      </div>
-      <div className="flex gap-2">
-        <SaveAsPngButton
-          svgContent={svgContent}
-          scale={scale}
-          imageMetadata={imageMetadata}
-        />
-        <button
-          onClick={cancel}
-          className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
+    <FileDropProvider inputRef={inputRef}>
+      {!imageMetadata ? (
+        <div className="flex flex-col p-4 gap-4">
+          <p className="text-center">
+            Make SVGs into PNGs. Also makes them bigger. (100% free btw.)
+          </p>
+          <div className="flex justify-center">
+            <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
+              <span>Upload SVG</span>
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                accept=".svg"
+                className="hidden"
+                ref={inputRef}
+              />
+            </label>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+          <SVGRenderer svgContent={svgContent} />
+          <p>{imageMetadata.name}</p>
+          <p>
+            Original size: {imageMetadata.width}px x {imageMetadata.height}px
+          </p>
+          <p>
+            Scaled size: {imageMetadata.width * scale}px x{" "}
+            {imageMetadata.height * scale}px
+          </p>
+          <div className="flex gap-2">
+            {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
+              <button
+                key={value}
+                onClick={() => setScale(value)}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  scale === value
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                {value}x
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <SaveAsPngButton
+              svgContent={svgContent}
+              scale={scale}
+              imageMetadata={imageMetadata}
+            />
+            <button
+              onClick={cancel}
+              className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </FileDropProvider>
   );
 }

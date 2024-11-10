@@ -1,8 +1,9 @@
 "use client";
+
+import { FileDropProvider } from "@/app/providers/file-drop-provider";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChangeEvent } from "react";
-import React from "react";
 
 type Radius = 2 | 4 | 8 | 16 | 32 | 64;
 
@@ -117,9 +118,9 @@ const ImageRenderer: React.FC<ImageRendererProps> = ({
   radius,
   background,
 }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (containerRef.current) {
       const imgElement = containerRef.current.querySelector("img");
       if (imgElement) {
@@ -155,9 +156,7 @@ function SaveAsPngButton({
   background: BackgroundOption;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null
-  );
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
   const { convertToPng, canvasProps } = useImageConverter({
     canvas: canvasRef,
     imageContent,
@@ -190,82 +189,85 @@ export function RoundedTool() {
 
   const [radius, setRadius] = useState<Radius>(2);
   const [background, setBackground] = useState<BackgroundOption>("transparent");
-
-  if (!imageMetadata)
-    return (
-      <div className="flex flex-col p-4 gap-4">
-        <p className="text-center">Round the corners of any image</p>
-        <div className="flex justify-center">
-          <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
-            <span>Upload Image</span>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              accept="image/*"
-              className="hidden"
-            />
-          </label>
-        </div>
-      </div>
-    );
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
-      <ImageRenderer
-        imageContent={imageContent}
-        radius={radius}
-        background={background}
-      />
-      <p>{imageMetadata.name}</p>
-      <p>
-        Original size: {imageMetadata.width}px x {imageMetadata.height}px
-      </p>
-      <div className="flex gap-2">
-        {([2, 4, 8, 16, 32, 64] as Radius[]).map((value) => (
-          <button
-            key={value}
-            onClick={() => setRadius(value)}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              radius === value
-                ? "bg-green-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {value}px
-          </button>
-        ))}
-      </div>
-      <div className="flex gap-2">
-        {(["white", "black", "transparent"] as BackgroundOption[]).map(
-          (option) => (
+    <FileDropProvider inputRef={inputRef}>
+      {!imageMetadata ? (
+        <div className="flex flex-col p-4 gap-4">
+          <p className="text-center">Round the corners of any image</p>
+          <div className="flex justify-center">
+            <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200 gap-2">
+              <span>Upload Image</span>
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                accept="image/*"
+                className="hidden"
+                ref={inputRef}
+              />
+            </label>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col p-4 gap-4 justify-center items-center text-2xl">
+          <ImageRenderer
+            imageContent={imageContent}
+            radius={radius}
+            background={background}
+          />
+          <p>{imageMetadata.name}</p>
+          <p>
+            Original size: {imageMetadata.width}px x {imageMetadata.height}px
+          </p>
+          <div className="flex gap-2">
+            {([2, 4, 8, 16, 32, 64] as Radius[]).map((value) => (
+              <button
+                key={value}
+                onClick={() => setRadius(value)}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  radius === value
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                {value}px
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {(["white", "black", "transparent"] as BackgroundOption[]).map(
+              (option) => (
+                <button
+                  key={option}
+                  onClick={() => setBackground(option)}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    background === option
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  }`}
+                >
+                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                </button>
+              )
+            )}
+          </div>
+          <div className="flex gap-2">
+            <SaveAsPngButton
+              imageContent={imageContent}
+              radius={radius}
+              background={background}
+              imageMetadata={imageMetadata}
+            />
             <button
-              key={option}
-              onClick={() => setBackground(option)}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                background === option
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
+              onClick={cancel}
+              className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
             >
-              {option.charAt(0).toUpperCase() + option.slice(1)}
+              Cancel
             </button>
-          )
-        )}
-      </div>
-      <div className="flex gap-2">
-        <SaveAsPngButton
-          imageContent={imageContent}
-          radius={radius}
-          background={background}
-          imageMetadata={imageMetadata}
-        />
-        <button
-          onClick={cancel}
-          className="px-3 py-1 rounded-md text-sm font-medium bg-red-700 text-white hover:bg-red-800 transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
+          </div>
+        </div>
+      )}
+    </FileDropProvider>
   );
 }
