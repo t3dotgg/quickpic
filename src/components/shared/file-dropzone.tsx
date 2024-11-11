@@ -63,17 +63,14 @@ export function FileDropzone({
           throw new Error("No file loaded");
         }
 
-        const verify = validateFileType(acceptedFileTypes, droppedFile.type);
+        const verify = validateFileType({
+          acceptedFileTypes,
+          file: droppedFile,
+        });
 
         if (!verify.isValid) {
-          if (verify.type === "UNKNOWN") {
-            throw new Error(
-              "Invalid file types set, supportedFileTypes may have been set wrong.",
-            );
-          }
-
           toast.error("Error uploading file!", {
-            description: `Only ${verify.type === "IMAGE" ? "Images" : "SVGs"} are supported.`,
+            description: verify.error,
           });
 
           return;

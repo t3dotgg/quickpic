@@ -75,7 +75,7 @@ export type FileUploaderResult = {
  * - cancel: Function to reset the upload state
  */
 export const useFileUploader = (
-  supportedFileTypes: string[],
+  acceptedFileTypes: string[],
 ): FileUploaderResult => {
   const [imageContent, setImageContent] = useState<string>("");
   const [rawContent, setRawContent] = useState<string>("");
@@ -127,15 +127,11 @@ export const useFileUploader = (
       throw new Error("No file loaded");
     }
 
-    const verify = validateFileType(supportedFileTypes, file.type);
+    const verify = validateFileType({ acceptedFileTypes, file });
 
     if (!verify.isValid) {
-      if (verify.type === "UNKNOWN") {
-        throw new Error("Invalid supportedFileTypes may have been set wrong.");
-      }
-
       toast.error("Error uploading file!", {
-        description: `Only ${verify.type === "IMAGE" ? "Images" : "SVGs"} are supported.`,
+        description: verify.error,
       });
 
       return;

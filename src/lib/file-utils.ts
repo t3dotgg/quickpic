@@ -36,48 +36,129 @@ export function createFileChangeEvent(
   } as ChangeEvent<HTMLInputElement>;
 }
 
-export function validateFileType(
-  acceptedFileTypes: string[],
-  currentFileType: string,
-): {
-  type: "IMAGE" | "SVG" | "UNKNOWN";
-  isValid: boolean;
-} {
-  const supportsSVGs = acceptedFileTypes.some((type) => type.includes("svg"));
+type FileTypeValidationResult =
+  | {
+      isValid: true;
+    }
+  | {
+      isValid: false;
+      error: string;
+    };
 
-  const supportsImages = acceptedFileTypes
-    .filter((type) => !type.includes("svg"))
-    .some((type) => type.includes("image"));
+export function validateFileType({
+  acceptedFileTypes,
+  file,
+}: {
+  acceptedFileTypes: string[];
+  file: File;
+}): FileTypeValidationResult {
+  const fileExtension = file.name.split(".").pop()?.toLowerCase() ?? "";
 
-  if ((supportsSVGs && supportsImages) || (supportsImages && !supportsSVGs)) {
-    if (!currentFileType.includes("image")) {
+  // Common list of image formats to check against for image files except for SVGs
+  const commonImageFormats = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".gif",
+    ".bmp",
+    ".tiff",
+    ".ico",
+    ".apng",
+    ".heif",
+    ".heic",
+    ".raw",
+    ".jfif",
+  ];
+
+  // Check to see if `acceptedFileTypes` accepts SVGs
+  const isSvgSupported = acceptedFileTypes.some((type) => type.includes("svg"));
+
+  /* 
+  Check to see if `acceptedFileTypes` accepts any type of images to specify the type of validation
+    1. Checks for file extensions passed to `acceptedFileTypes`
+    2. Checks for file mimes passed to `acceptedFileTypes`
+  */
+  const isImageSupported =
+    acceptedFileTypes.some((type) => commonImageFormats.includes(type)) ||
+    acceptedFileTypes
+      .filter((type) => !type.includes("svg"))
+      .some((type) => type.includes("image"));
+
+  if (
+    (isSvgSupported && isImageSupported) ||
+    (isImageSupported && !isSvgSupported)
+  ) {
+    /*
+     If `acceptedFileTypes` is using an `image/*` wildcard, simply validate the file type if it 
+     includes the mime of `image/` since any type of image is supported.
+    */
+
+    if (
+      acceptedFileTypes.includes("image/*") &&
+      !file.type.includes("image/")
+    ) {
       return {
-        type: "IMAGE",
         isValid: false,
+        error: "Only Images are supported.",
+      };
+    }
+
+    /* 
+      If `acceptedFileTypes` does not have `image/*` wildcard and is using file extensions, then
+      use the file extension instead and match `acceptedFileTypes`. This can be useful for 
+      validating very specific file types like `.png` formats only if set correctly in `acceptedFileTypes`
+    */
+
+    if (
+      !acceptedFileTypes.some((type) =>
+        type.replace("image/", ".").includes(fileExtension),
+      )
+    ) {
+      /*
+        Filters and cleans out duplicate file extensions, in case `acceptedFileTypes` uses only specific mimes,
+        specific extensions or both. In the case of using both for example `image/png` and `.png`, it would create
+        duplicates so we remove them.
+      */
+      const filteredAcceptedFileTypes = [
+        ...new Set(
+          acceptedFileTypes
+            .filter((type) => !type.includes("*")) // filters out wildcards
+            .map((type) =>
+              type.includes("/") ? `.${type.split("/")[1]}` : type,
+            ),
+        ),
+      ];
+
+      return {
+        isValid: false,
+        error: `Only ${filteredAcceptedFileTypes.join(", ")} files are supported.`,
       };
     }
 
     return {
-      type: "IMAGE",
       isValid: true,
     };
   }
 
-  if (!supportsImages && supportsSVGs) {
-    if (!currentFileType.includes("svg")) {
+  if (!isImageSupported && isSvgSupported) {
+    /* 
+      Since all SVG types are esentially the same, after checking that only SVG are accepted using `isSvgSupported`,
+      simply check if the file type or extension has anything with svg in it. 
+    */
+
+    if (!file.type.includes("svg") || !fileExtension?.includes("svg")) {
       return {
-        type: "SVG",
         isValid: false,
+        error: "Only SVGs are supported.",
       };
     }
+
     return {
-      type: "SVG",
       isValid: true,
     };
   }
 
-  return {
-    type: "UNKNOWN",
-    isValid: false,
-  };
+  // In case of passing an invalid `acceptedFileTypes`, we throw an error
+  throw new Error("Invalid acceptedFileTypes");
 }
