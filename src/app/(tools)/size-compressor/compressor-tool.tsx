@@ -271,7 +271,7 @@ export default function ImageSizeCompressor() {
         />
       </div>
 
-      {previews[0] !== undefined && (
+      {images.length > 0 && (
         <div className="flex gap-8">
           <div className="flex flex-col items-center gap-2">
             <span className="text-sm font-medium">Original</span>
