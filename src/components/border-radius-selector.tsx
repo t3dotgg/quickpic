@@ -81,7 +81,7 @@ export function BorderRadiusSelector({
               }
               className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 option === selected
-                  ? "dark:text-white"
+                  ? "text-white"
                   : "bg-gray-200 dark:bg-white/5 dark:text-white/80 dark:hover:text-white"
               }`}
             >
