@@ -56,7 +56,7 @@ export default function ImageSizeCompressor() {
     let isMounted = true;
 
     async function generateCompressedPreview() {
-      if (images[0] === undefined) {
+      if (!images[0]) {
         setCompressedPreview(null);
         setCompressedSize("");
         return;
@@ -71,25 +71,40 @@ export default function ImageSizeCompressor() {
           initialQuality: quality,
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        const compressedFile = (await imageCompression(
-          images[0],
-          options,
-        )) as File;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        const compressedFile = await imageCompression(images[0], options);
 
         if (!isMounted) return;
+
+        if (!(compressedFile instanceof File) || !compressedFile.size) {
+          throw new Error("Invalid compressed file");
+        }
 
         setCompressedSize(formatFileSize(compressedFile.size));
 
         const reader = new FileReader();
         reader.onloadend = () => {
-          if (isMounted) {
-            setCompressedPreview(reader.result as string);
+          if (!isMounted) return;
+
+          if (typeof reader.result !== "string") {
+            console.error("Invalid reader result type");
+            return;
           }
+
+          setCompressedPreview(reader.result);
         };
+
+        reader.onerror = () => {
+          console.error("Error reading compressed file");
+        };
+
         reader.readAsDataURL(compressedFile);
       } catch (error) {
         console.error("Error generating preview:", error);
+        if (isMounted) {
+          setCompressedPreview(null);
+          setCompressedSize("");
+        }
       } finally {
         if (isMounted) {
           setIsCompressing(false);
@@ -117,10 +132,8 @@ export default function ImageSizeCompressor() {
       };
 
       const compressedFiles = await Promise.all<File>(
-        images.map(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-          (image) => imageCompression(image, options) as Promise<File>,
-        ),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+        images.map((image) => imageCompression(image, options)),
       );
 
       compressedFiles.forEach((file, index) => {
