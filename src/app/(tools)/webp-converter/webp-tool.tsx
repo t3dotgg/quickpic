@@ -85,39 +85,50 @@ export function WebPTool() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-bold mb-4">WebP Converter</h1>
-      <p className="text-gray-600 dark:text-gray-300 mb-8">
-        Convert WebP images to PNG or JPG format. Fast, free, and processed entirely in your browser.
-      </p>
+    <div className="flex flex-col items-center justify-center max-w-2xl mx-auto space-y-8">
+      <div className="text-center space-y-4">
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
+          WebP Converter
+        </h1>
+        <p className="text-gray-300">
+          Convert WebP images to PNG or JPG format. Fast, free, and processed entirely in your browser.
+        </p>
+      </div>
 
       <div
         {...getRootProps()}
-        className={`w-full max-w-xl cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-          isDragActive ? "border-blue-500 bg-blue-50/10" : "border-gray-300"
+        className={`w-full cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-300 bg-gray-900/50 ${
+          isDragActive ? "border-primary/50 bg-primary/5" : "border-gray-700 hover:border-gray-600"
         }`}
       >
         <input {...getInputProps()} />
         {isConverting ? (
-          <div className="flex flex-col items-center gap-2">
-            <p>Converting...</p>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+          <div className="flex flex-col items-center gap-3">
+            <div className="loading-spinner" />
+            <p className="text-gray-300">Converting...</p>
           </div>
         ) : (
           <>
-            <p>Drag & drop WebP files here, or click to select files</p>
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-12 w-12 rounded-xl bg-gray-800 flex items-center justify-center">
+                <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </div>
+              <p className="text-gray-300">Drag & drop WebP files here, or click to select files</p>
+            </div>
             {files.length > 0 && (
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-400">
                 {files.length} file(s) selected
               </p>
             )}
           </>
         )}
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+        {error && <p className="mt-4 text-red-400">{error}</p>}
       </div>
 
       {files.length > 0 && !isConverting && (
-        <div className="flex flex-col items-center gap-4 mt-8 w-full max-w-xl">
+        <div className="w-full space-y-4">
           <div className="space-y-2 w-full">
             {files.map((file, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -125,7 +136,7 @@ export function WebPTool() {
                   type="text"
                   value={file.newName}
                   onChange={(e) => handleNameChange(index, e.target.value)}
-                  className="input"
+                  className="input bg-gray-900 border-gray-700 text-gray-200 focus:border-gray-600"
                   placeholder="Enter file name"
                 />
                 <span className="text-gray-400">.{options.format}</span>
@@ -137,14 +148,14 @@ export function WebPTool() {
             <select
               value={options.format}
               onChange={(e) => setOptions({ ...options, format: e.target.value as "png" | "jpg" })}
-              className="input max-w-[100px]"
+              className="input bg-gray-900 border-gray-700 text-gray-200 focus:border-gray-600 max-w-[100px]"
             >
               <option value="png">PNG</option>
               <option value="jpg">JPG</option>
             </select>
 
             <div className="flex items-center gap-2">
-              <label>Quality:</label>
+              <label className="text-gray-300">Quality:</label>
               <input
                 type="range"
                 min="1"
@@ -153,12 +164,12 @@ export function WebPTool() {
                 onChange={(e) => setOptions({ ...options, quality: Number(e.target.value) })}
                 className="w-32"
               />
-              <span>{options.quality}%</span>
+              <span className="text-gray-400">{options.quality}%</span>
             </div>
 
             <button
               onClick={() => void handleConvert()}
-              className="btn btn-primary"
+              className="btn btn-primary w-full"
             >
               Convert Files
             </button>

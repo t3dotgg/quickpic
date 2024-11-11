@@ -77,45 +77,56 @@ export const HeicTool = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-bold mb-4">HEIC to PNG Converter</h1>
-      <p className="text-gray-600 dark:text-gray-300 mb-8">
-        Convert Apple HEIC photos to PNG format. Fast, free, and processed entirely in your browser.
-      </p>
+    <div className="flex flex-col items-center justify-center max-w-2xl mx-auto space-y-8">
+      <div className="text-center space-y-4">
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
+          HEIC to PNG Converter
+        </h1>
+        <p className="text-gray-300">
+          Convert Apple HEIC photos to PNG format. Fast, free, and processed entirely in your browser.
+        </p>
+      </div>
 
       <div
         {...getRootProps()}
-        className={`w-full max-w-xl cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-          isDragActive ? "border-blue-500 bg-blue-50/10" : "border-gray-300"
+        className={`w-full cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-300 bg-gray-900/50 ${
+          isDragActive ? "border-primary/50 bg-primary/5" : "border-gray-700 hover:border-gray-600"
         }`}
       >
         <input {...getInputProps()} />
         {isConverting ? (
-          <div className="flex flex-col items-center gap-2">
-            <p>Converting...</p>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+          <div className="flex flex-col items-center gap-3">
+            <div className="loading-spinner" />
+            <p className="text-gray-300">Converting...</p>
           </div>
         ) : (
           <>
-            <p>Drag & drop a HEIC file here, or click to select file</p>
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-12 w-12 rounded-xl bg-gray-800 flex items-center justify-center">
+                <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </div>
+              <p className="text-gray-300">Drag & drop a HEIC file here, or click to select file</p>
+            </div>
             {currentFile && (
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-400">
                 Selected: {currentFile.file.name}
               </p>
             )}
           </>
         )}
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+        {error && <p className="mt-4 text-red-400">{error}</p>}
       </div>
 
       {currentFile && !isConverting && (
-        <div className="flex flex-col items-center gap-4 mt-8">
+        <div className="w-full space-y-4">
           <div className="flex items-center gap-2">
             <input
               type="text"
               value={currentFile.newName}
               onChange={(e) => handleNameChange(e.target.value)}
-              className="input"
+              className="input bg-gray-900 border-gray-700 text-gray-200 focus:border-gray-600"
               placeholder="Enter file name"
             />
             <span className="text-gray-400">.png</span>
@@ -123,7 +134,7 @@ export const HeicTool = () => {
           
           <button
             onClick={() => void handleConvert()}
-            className="btn btn-primary"
+            className="btn btn-primary w-full"
           >
             Convert to PNG
           </button>
