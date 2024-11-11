@@ -1,14 +1,16 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import React from "react";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
 import { BorderRadiusSelector } from "@/components/border-radius-selector";
-import { useFileState } from "@/lib/file-context";
-import { createFileChangeEvent } from "@/lib/file-utils";
-import { useFileUploader } from "@/hooks/use-file-uploader";
+import {
+  useFileUploader,
+  type FileUploaderResult,
+} from "@/hooks/use-file-uploader";
+import { FileDropzone } from "@/components/shared/file-dropzone";
 
 type Radius = number;
 
@@ -152,19 +154,9 @@ function SaveAsPngButton({
   );
 }
 
-export function RoundedTool() {
-  const { currentFile } = useFileState();
-  const { imageContent, imageMetadata, handleFileUpload, cancel } =
-    useFileUploader();
-
-  // Add effect to handle files from context
-  useEffect(() => {
-    if (currentFile) {
-      const event = createFileChangeEvent(currentFile);
-      handleFileUpload(event);
-    }
-  }, [currentFile, handleFileUpload]);
-
+function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
+  const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
+    props.fileUploaderProps;
   const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
   const [isCustomRadius, setIsCustomRadius] = useState(false);
   const [background, setBackground] = useLocalStorage<BackgroundOption>(
@@ -188,7 +180,7 @@ export function RoundedTool() {
         subtitle="Allows pasting images from clipboard"
         description="Upload Image"
         accept="image/*"
-        onChange={handleFileUpload}
+        onChange={handleFileUploadEvent}
       />
     );
   }
@@ -247,5 +239,19 @@ export function RoundedTool() {
         />
       </div>
     </div>
+  );
+}
+
+export function RoundedTool() {
+  const fileUploaderProps = useFileUploader();
+
+  return (
+    <FileDropzone
+      setCurrentFile={fileUploaderProps.handleFileUpload}
+      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp"]}
+      dropText="Drop image file"
+    >
+      <RoundedToolCore fileUploaderProps={fileUploaderProps} />
+    </FileDropzone>
   );
 }

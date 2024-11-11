@@ -1,6 +1,4 @@
 import { RoundedTool } from "./rounded-tool";
-import { FileDropzone } from "@/components/shared/file-dropzone";
-import { FileProvider } from "@/components/providers/file-provider";
 
 export const metadata = {
   title: "Corner Rounder - QuickPic",
@@ -8,14 +6,5 @@ export const metadata = {
 };
 
 export default function RoundedToolPage() {
-  return (
-    <FileProvider>
-      <FileDropzone
-        acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp"]}
-        dropText="Drop image file"
-      >
-        <RoundedTool />
-      </FileDropzone>
-    </FileProvider>
-  );
+  return <RoundedTool />;
 }
