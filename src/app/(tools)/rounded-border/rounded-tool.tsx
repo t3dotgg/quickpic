@@ -7,8 +7,9 @@ import React from "react";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
 import { useClipboardPaste } from "@/hooks/use-clipboard-paste";
+import { BorderRadiusSelector } from "@/components/border-radius-selector";
 
-type Radius = 2 | 4 | 8 | 16 | 32 | 64;
+type Radius = number;
 
 type BackgroundOption = "white" | "black" | "transparent";
 
@@ -146,7 +147,7 @@ const ImageRenderer: React.FC<ImageRendererProps> = ({
   }, [imageContent, radius]);
 
   return (
-    <div ref={containerRef} className="relative max-h-full max-w-full">
+    <div ref={containerRef} className="relative w-[500px]">
       <div
         className="absolute inset-0"
         style={{ backgroundColor: background, borderRadius: 0 }}
@@ -155,7 +156,7 @@ const ImageRenderer: React.FC<ImageRendererProps> = ({
         src={imageContent}
         alt="Preview"
         className="relative rounded-lg"
-        style={{ width: "100%", height: "auto" }}
+        style={{ width: "100%", height: "auto", objectFit: "contain" }}
       />
     </div>
   );
@@ -206,10 +207,20 @@ export function RoundedTool() {
     useFileUploader();
 
   const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
+  const [isCustomRadius, setIsCustomRadius] = useState(false);
   const [background, setBackground] = useLocalStorage<BackgroundOption>(
     "roundedTool_background",
     "transparent",
   );
+
+  const handleRadiusChange = (value: number | "custom") => {
+    if (value === "custom") {
+      setIsCustomRadius(true);
+    } else {
+      setRadius(value);
+      setIsCustomRadius(false);
+    }
+  };
 
   if (!imageMetadata) {
     return (
@@ -243,12 +254,13 @@ export function RoundedTool() {
         </span>
       </div>
 
-      <OptionSelector
+      <BorderRadiusSelector
         title="Border Radius"
         options={[2, 4, 8, 16, 32, 64]}
-        selected={radius}
-        onChange={setRadius}
-        formatOption={(value) => `${value}px`}
+        selected={isCustomRadius ? "custom" : radius}
+        onChange={handleRadiusChange}
+        customValue={radius}
+        onCustomValueChange={setRadius}
       />
 
       <OptionSelector
