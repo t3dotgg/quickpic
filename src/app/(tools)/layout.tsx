@@ -36,16 +36,14 @@ export default function ToolsLayout({
     <div className="flex min-h-screen flex-col bg-gray-950 text-gray-50">
       <BackButton />
       <main className="flex flex-grow flex-col items-center justify-center p-6 sm:p-20">
-        <div className="w-full max-w-3xl">
-          {children}
-        </div>
+        <div className="w-full max-w-3xl">{children}</div>
       </main>
       <footer className="p-8 text-center text-sm text-gray-500">
         <a
           href="https://github.com/t3dotgg/quickpic"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-gray-300 transition-colors"
+          className="transition-colors hover:text-gray-300"
         >
           View on GitHub
         </a>

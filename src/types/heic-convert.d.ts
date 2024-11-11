@@ -1,10 +1,10 @@
-declare module "heic2any" {
-  interface Options {
-    blob: Blob;
-    toType?: string;
+declare module "heic-convert" {
+  interface ConvertOptions {
+    buffer: Buffer;
+    format: "PNG" | "JPEG";
     quality?: number;
   }
 
-  function convert(options: Options): Promise<Blob | Blob[]>;
+  function convert(options: ConvertOptions): Promise<Buffer>;
   export default convert;
 }
