@@ -1,6 +1,6 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import type { ChangeEvent } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import React from "react";
@@ -8,6 +8,8 @@ import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
 import { useClipboardPaste } from "@/hooks/use-clipboard-paste";
 import { BorderRadiusSelector } from "@/components/border-radius-selector";
+import { useFileState } from "@/lib/file-context";
+import { createFileChangeEvent } from "@/lib/file-utils";
 
 type Radius = number;
 
@@ -203,8 +205,17 @@ function SaveAsPngButton({
 }
 
 export function RoundedTool() {
+  const { currentFile } = useFileState();
   const { imageContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
+
+  // Add effect to handle files from context
+  useEffect(() => {
+    if (currentFile) {
+      const event = createFileChangeEvent(currentFile);
+      handleFileUpload(event);
+    }
+  }, [currentFile, handleFileUpload]);
 
   const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
   const [isCustomRadius, setIsCustomRadius] = useState(false);

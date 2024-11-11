@@ -1,16 +1,19 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { type ChangeEvent } from "react";
 
 import { UploadBox } from "@/components/shared/upload-box";
-import { OptionSelector } from "@/components/shared/option-selector";
+import { SVGScaleSelector } from "@/components/svg-scale-selector";
 
-export type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
+import { useFileState } from "@/lib/file-context";
+import { createFileChangeEvent } from "@/lib/file-utils";
 
-function scaleSvg(svgContent: string, scale: Scale) {
+export type Scale = "custom" | number;
+
+function scaleSvg(svgContent: string, scale: number) {
   const parser = new DOMParser();
   const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgElement = svgDoc.documentElement;
@@ -29,7 +32,7 @@ function scaleSvg(svgContent: string, scale: Scale) {
 function useSvgConverter(props: {
   canvas: HTMLCanvasElement | null;
   svgContent: string;
-  scale: Scale;
+  scale: number;
   fileName?: string;
   imageMetadata: { width: number; height: number; name: string };
 }) {
@@ -144,7 +147,7 @@ function SaveAsPngButton({
   imageMetadata,
 }: {
   svgContent: string;
-  scale: Scale;
+  scale: number;
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
@@ -176,10 +179,26 @@ function SaveAsPngButton({
 }
 
 export function SVGTool() {
+  const { currentFile } = useFileState();
   const { svgContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
+  // React to file changes from drag and drop
+  useEffect(() => {
+    if (currentFile) {
+      const event = createFileChangeEvent(currentFile);
+      handleFileUpload(event);
+    }
+  }, [currentFile, handleFileUpload]);
+
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
+  const [customScale, setCustomScale] = useLocalStorage<number>(
+    "svgTool_customScale",
+    1,
+  );
+
+  // Get the actual numeric scale value
+  const effectiveScale = scale === "custom" ? customScale : scale;
 
   if (!imageMetadata)
     return (
@@ -213,18 +232,20 @@ export function SVGTool() {
         <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
           <span className="text-sm text-white/60">Scaled</span>
           <span className="font-medium text-white">
-            {imageMetadata.width * scale} × {imageMetadata.height * scale}
+            {imageMetadata.width * effectiveScale} ×{" "}
+            {imageMetadata.height * effectiveScale}
           </span>
         </div>
       </div>
 
       {/* Scale Controls */}
-      <OptionSelector
+      <SVGScaleSelector
         title="Scale Factor"
         options={[1, 2, 4, 8, 16, 32, 64]}
         selected={scale}
         onChange={setScale}
-        formatOption={(value) => `${value}×`}
+        customValue={customScale}
+        onCustomValueChange={setCustomScale}
       />
 
       {/* Action Buttons */}
@@ -237,7 +258,7 @@ export function SVGTool() {
         </button>
         <SaveAsPngButton
           svgContent={svgContent}
-          scale={scale}
+          scale={effectiveScale}
           imageMetadata={imageMetadata}
         />
       </div>

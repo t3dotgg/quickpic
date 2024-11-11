@@ -1,5 +1,6 @@
 import { SquareTool } from "./square-tool";
 import { FileDropzone } from "@/components/shared/file-dropzone";
+import { FileProvider } from "@/components/providers/file-provider";
 
 export const metadata = {
   title: "Square Image Generator - QuickPic",
@@ -9,11 +10,13 @@ export const metadata = {
 
 export default function SquareToolPage() {
   return (
-    <FileDropzone
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp"]}
-      dropText="Drop image file"
-    >
-      <SquareTool />
-    </FileDropzone>
+    <FileProvider>
+      <FileDropzone
+        acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp"]}
+        dropText="Drop image file"
+      >
+        <SquareTool />
+      </FileDropzone>
+    </FileProvider>
   );
 }

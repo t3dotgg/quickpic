@@ -1,5 +1,6 @@
 import { SVGTool } from "./svg-tool";
 import { FileDropzone } from "@/components/shared/file-dropzone";
+import { FileProvider } from "@/components/providers/file-provider";
 
 export const metadata = {
   title: "SVG to PNG converter - QuickPic",
@@ -8,11 +9,13 @@ export const metadata = {
 
 export default function SVGToolPage() {
   return (
-    <FileDropzone
-      acceptedFileTypes={["image/svg+xml", ".svg"]}
-      dropText="Drop SVG file"
-    >
-      <SVGTool />
-    </FileDropzone>
+    <FileProvider>
+      <FileDropzone
+        acceptedFileTypes={["image/svg+xml", ".svg"]}
+        dropText="Drop SVG file"
+      >
+        <SVGTool />
+      </FileDropzone>
+    </FileProvider>
   );
 }

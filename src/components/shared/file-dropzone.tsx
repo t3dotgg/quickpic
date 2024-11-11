@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useState, useRef } from "react";
+import { useFileState } from "@/lib/file-context";
 
 interface FileDropzoneProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
+  const { setCurrentFile } = useFileState();
 
   const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -58,17 +60,11 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
               droppedFile.name.toLowerCase().endsWith(type.replace("*", "")),
             ))
         ) {
-          const fileInput = document.querySelector('input[type="file"]')!;
-          if (fileInput) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(droppedFile);
-            (fileInput as HTMLInputElement).files = dataTransfer.files;
-            fileInput.dispatchEvent(new Event("change", { bubbles: true }));
-          }
+          setCurrentFile(droppedFile);
         }
       }
     },
-    [acceptedFileTypes],
+    [acceptedFileTypes, setCurrentFile],
   );
 
   return (

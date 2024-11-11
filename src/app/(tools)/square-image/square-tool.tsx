@@ -11,8 +11,10 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
 import { useClipboardPaste } from "@/hooks/use-clipboard-paste";
+import { useFileState } from "@/lib/file-context";
 
 export const SquareTool: React.FC = () => {
+  const { currentFile } = useFileState();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
     "black" | "white"
@@ -27,18 +29,27 @@ export const SquareTool: React.FC = () => {
   } | null>(null);
   const plausible = usePlausible();
 
+  const processFile = (file: File) => {
+    setImageFile(file);
+    setImageMetadata({ width: 0, height: 0, name: file.name });
+  };
+
   const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      setImageMetadata({ width: 0, height: 0, name: file.name });
+      processFile(file);
     }
   };
 
   const handleFilePaste = useCallback((file: File) => {
-    setImageFile(file);
-    setImageMetadata({ width: 0, height: 0, name: file.name });
+    processFile(file);
   }, []);
+
+  useEffect(() => {
+    if (currentFile) {
+      processFile(currentFile);
+    }
+  }, [currentFile]);
 
   useClipboardPaste({
     onPaste: handleFilePaste,
