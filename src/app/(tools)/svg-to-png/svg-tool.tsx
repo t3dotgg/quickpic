@@ -1,13 +1,14 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
-import { type ChangeEvent } from "react";
+import { UploadBox } from "@/components/shared/upload-box";
+import { SVGScaleSelector } from "@/components/svg-scale-selector";
 
-type Scale = 1 | 2 | 4 | 8 | 16 | 32 | 64;
+export type Scale = "custom" | number;
 
-function scaleSvg(svgContent: string, scale: Scale) {
+function scaleSvg(svgContent: string, scale: number) {
   const parser = new DOMParser();
   const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgElement = svgDoc.documentElement;
@@ -26,7 +27,7 @@ function scaleSvg(svgContent: string, scale: Scale) {
 function useSvgConverter(props: {
   canvas: HTMLCanvasElement | null;
   svgContent: string;
-  scale: Scale;
+  scale: number;
   fileName?: string;
   imageMetadata: { width: number; height: number; name: string };
 }) {
@@ -74,66 +75,26 @@ function useSvgConverter(props: {
   };
 }
 
-export const useFileUploader = () => {
-  const [svgContent, setSvgContent] = useState<string>("");
-
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
-
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-
-        // Extract width and height from SVG content
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(content, "image/svg+xml");
-        const svgElement = svgDoc.documentElement;
-        const width = parseInt(svgElement.getAttribute("width") ?? "300");
-        const height = parseInt(svgElement.getAttribute("height") ?? "150");
-
-        setSvgContent(content);
-        setImageMetadata({ width, height, name: file.name });
-      };
-      reader.readAsText(file);
-    }
-  };
-
-  const cancel = () => {
-    setSvgContent("");
-    setImageMetadata(null);
-  };
-
-  return { svgContent, imageMetadata, handleFileUpload, cancel };
-};
-
-import React from "react";
-
 interface SVGRendererProps {
   svgContent: string;
 }
 
-const SVGRenderer: React.FC<SVGRendererProps> = ({ svgContent }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+function SVGRenderer({ svgContent }: SVGRendererProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (containerRef.current) {
       containerRef.current.innerHTML = svgContent;
       const svgElement = containerRef.current.querySelector("svg");
       if (svgElement) {
         svgElement.setAttribute("width", "100%");
-        svgElement.setAttribute("height", "auto");
+        svgElement.setAttribute("height", "100%");
       }
     }
   }, [svgContent]);
 
   return <div ref={containerRef} />;
-};
+}
 
 function SaveAsPngButton({
   svgContent,
@@ -141,12 +102,10 @@ function SaveAsPngButton({
   imageMetadata,
 }: {
   svgContent: string;
-  scale: Scale;
+  scale: number;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null,
-  );
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,
     svgContent,
@@ -172,71 +131,100 @@ function SaveAsPngButton({
   );
 }
 
-export function SVGTool() {
-  const { svgContent, imageMetadata, handleFileUpload, cancel } =
-    useFileUploader();
+import {
+  type FileUploaderResult,
+  useFileUploader,
+} from "@/hooks/use-file-uploader";
+import { FileDropzone } from "@/components/shared/file-dropzone";
+
+function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
+  const { rawContent, imageMetadata, handleFileUploadEvent, cancel } =
+    props.fileUploaderProps;
 
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
+  const [customScale, setCustomScale] = useLocalStorage<number>(
+    "svgTool_customScale",
+    1,
+  );
+
+  // Get the actual numeric scale value
+  const effectiveScale = scale === "custom" ? customScale : scale;
 
   if (!imageMetadata)
     return (
-      <div className="flex flex-col gap-4 p-4">
-        <p className="text-center">
-          Make SVGs into PNGs. Also makes them bigger. (100% free btw.)
-        </p>
-        <div className="flex justify-center">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-            <span>Upload SVG</span>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              accept=".svg"
-              className="hidden"
-            />
-          </label>
-        </div>
-      </div>
+      <UploadBox
+        title="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
+        description="Upload SVG"
+        accept=".svg"
+        onChange={handleFileUploadEvent}
+      />
     );
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
-      <SVGRenderer svgContent={svgContent} />
-      <p>{imageMetadata.name}</p>
-      <p>
-        Original size: {imageMetadata.width}px x {imageMetadata.height}px
-      </p>
-      <p>
-        Scaled size: {imageMetadata.width * scale}px x{" "}
-        {imageMetadata.height * scale}px
-      </p>
-      <div className="flex gap-2">
-        {([1, 2, 4, 8, 16, 32, 64] as Scale[]).map((value) => (
-          <button
-            key={value}
-            onClick={() => setScale(value)}
-            className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-              scale === value
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {value}x
-          </button>
-        ))}
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
+      {/* Preview Section */}
+      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
+        <SVGRenderer svgContent={rawContent} />
+        <p className="text-lg font-medium text-white/80">
+          {imageMetadata.name}
+        </p>
       </div>
-      <div className="flex gap-2">
-        <SaveAsPngButton
-          svgContent={svgContent}
-          scale={scale}
-          imageMetadata={imageMetadata}
-        />
+
+      {/* Size Information */}
+      <div className="flex gap-6 text-base">
+        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
+          <span className="text-sm text-white/60">Original</span>
+          <span className="font-medium text-white">
+            {imageMetadata.width} × {imageMetadata.height}
+          </span>
+        </div>
+
+        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
+          <span className="text-sm text-white/60">Scaled</span>
+          <span className="font-medium text-white">
+            {imageMetadata.width * effectiveScale} ×{" "}
+            {imageMetadata.height * effectiveScale}
+          </span>
+        </div>
+      </div>
+
+      {/* Scale Controls */}
+      <SVGScaleSelector
+        title="Scale Factor"
+        options={[1, 2, 4, 8, 16, 32, 64]}
+        selected={scale}
+        onChange={setScale}
+        customValue={customScale}
+        onCustomValueChange={setCustomScale}
+      />
+
+      {/* Action Buttons */}
+      <div className="flex gap-3">
         <button
           onClick={cancel}
-          className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
+          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
         >
           Cancel
         </button>
+        <SaveAsPngButton
+          svgContent={rawContent}
+          scale={effectiveScale}
+          imageMetadata={imageMetadata}
+        />
       </div>
     </div>
+  );
+}
+
+export function SVGTool() {
+  const fileUploaderProps = useFileUploader();
+  return (
+    <FileDropzone
+      setCurrentFile={fileUploaderProps.handleFileUpload}
+      acceptedFileTypes={["image/svg+xml", ".svg"]}
+      dropText="Drop SVG file"
+    >
+      <SVGToolCore fileUploaderProps={fileUploaderProps} />
+    </FileDropzone>
   );
 }
