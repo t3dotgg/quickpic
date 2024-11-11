@@ -1,204 +1,170 @@
 "use client";
-
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import JSZip from "jszip";
-
-type OutputFormat = "jpg" | "png";
-
-interface ConversionOptions {
-  format: OutputFormat;
-  quality: number;
-}
-
-interface FileWithNewName extends File {
-  newName: string;
-}
 
 export function WebPTool() {
-  const [files, setFiles] = useState<FileWithNewName[]>([]);
-  const [converting, setConverting] = useState(false);
-  const [options, setOptions] = useState<ConversionOptions>({
-    format: "png",
-    quality: 90,
+  const [files, setFiles] = useState<Array<{ file: File; newName: string }>>([]); 
+  const [options, setOptions] = useState({
+    format: "png" as "png" | "jpg",
+    quality: 90
   });
+  const [isConverting, setIsConverting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const webpFiles = acceptedFiles
-      .filter((file) => file.type.includes("webp"))
-      .map((file) => ({
-        ...file,
-        newName: file.name.replace(/\.webp$/i, ""),
-      }));
-    setFiles(webpFiles);
-  }, []);
+  const onDrop = async (acceptedFiles: File[]) => {
+    const newFiles = acceptedFiles.map(file => ({
+      file,
+      newName: file.name.replace(/\.webp$/i, ''),
+    }));
+    setFiles(newFiles);
+    setError(null);
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "image/webp": [".webp"],
+      'image/webp': ['.webp', '.WEBP'],
     },
   });
 
-  const convertImage = async (file: FileWithNewName): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("Could not get canvas context"));
-          return;
-        }
-
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error("Conversion failed"));
-          },
-          `image/${options.format}`,
-          options.quality / 100,
-        );
-
-        URL.revokeObjectURL(url);
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error("Failed to load image"));
-      };
-
-      img.src = url;
-    });
-  };
-
   const handleNameChange = (index: number, newName: string) => {
-    setFiles((prev) =>
-      prev.map((file, i) => (i === index ? { ...file, newName } : file)),
-    );
+    const newFiles = [...files];
+    newFiles[index].newName = newName;
+    setFiles(newFiles);
   };
 
   const handleConvert = async () => {
     if (files.length === 0) return;
-    setConverting(true);
+    setIsConverting(true);
+    setError(null);
 
     try {
-      if (files.length === 1 && files[0]) {
-        const blob = await convertImage(files[0]);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${files[0].newName}.${options.format}`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } else {
-        const zip = new JSZip();
-        const converted = await Promise.all(
-          files
-            .filter((f): f is FileWithNewName => f !== undefined)
-            .map(convertImage),
-        );
+      for (const fileData of files) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Could not get canvas context');
 
-        converted.forEach((blob, i) => {
-          const file = files[i];
-          if (file) {
-            zip.file(`${file.newName}.${options.format}`, blob);
-          }
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = URL.createObjectURL(fileData.file);
         });
 
-        const content = await zip.generateAsync({ type: "blob" });
-        const url = URL.createObjectURL(content);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "converted-images.zip";
-        a.click();
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob(
+            (blob) => resolve(blob!),
+            `image/${options.format}`,
+            options.quality / 100
+          );
+        });
+
+        // Download the converted file
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${fileData.newName}.${options.format}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }
-    } catch (error) {
-      console.error("Conversion failed:", error);
-      alert("Failed to convert image(s)");
+
+      // Reset state
+      setFiles([]);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to convert file(s). Please try again.");
     } finally {
-      setConverting(false);
+      setIsConverting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+      <h1 className="text-2xl font-bold mb-4">WebP Converter</h1>
+      <p className="text-gray-600 dark:text-gray-300 mb-8">
+        Convert WebP images to PNG or JPG format. Fast, free, and processed entirely in your browser.
+      </p>
+
       <div
         {...getRootProps()}
-        className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${isDragActive ? "border-blue-500 bg-blue-50/10" : "border-gray-300"}`}
-      >
-        <input {...getInputProps()} />
-        <p>Drag & drop WebP files here, or click to select files</p>
-        {files.length > 0 && (
-          <p className="mt-2 text-sm text-gray-400">
-            {files.length} file(s) selected
-          </p>
-        )}
-      </div>
-
-      {files.length > 0 && (
-        <div className="space-y-2">
-          {files.map((file, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={file.newName}
-                onChange={(e) => handleNameChange(index, e.target.value)}
-                className="rounded border border-gray-600 bg-transparent p-2 text-foreground"
-                placeholder="Enter file name"
-              />
-              <span className="text-gray-400">.{options.format}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="flex gap-4">
-        <select
-          value={options.format}
-          onChange={(e) =>
-            setOptions({ ...options, format: e.target.value as OutputFormat })
-          }
-          className="rounded border border-gray-600 bg-transparent p-2 text-foreground"
-        >
-          <option value="png">PNG</option>
-          <option value="jpg">JPG</option>
-        </select>
-
-        <div className="flex items-center gap-2 text-foreground">
-          <label>Quality:</label>
-          <input
-            type="range"
-            min="1"
-            max="100"
-            value={options.quality}
-            onChange={(e) =>
-              setOptions({ ...options, quality: Number(e.target.value) })
-            }
-            className="w-32"
-          />
-          <span>{options.quality}%</span>
-        </div>
-      </div>
-
-      <button
-        onClick={handleConvert}
-        disabled={files.length === 0 || converting}
-        className={`rounded px-4 py-2 text-white ${
-          files.length === 0 || converting
-            ? "cursor-not-allowed bg-gray-400"
-            : "bg-blue-500 hover:bg-blue-600"
+        className={`w-full max-w-xl cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+          isDragActive ? "border-blue-500 bg-blue-50/10" : "border-gray-300"
         }`}
       >
-        {converting ? "Converting..." : "Convert"}
-      </button>
+        <input {...getInputProps()} />
+        {isConverting ? (
+          <div className="flex flex-col items-center gap-2">
+            <p>Converting...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+          </div>
+        ) : (
+          <>
+            <p>Drag & drop WebP files here, or click to select files</p>
+            {files.length > 0 && (
+              <p className="mt-2 text-sm text-gray-500">
+                {files.length} file(s) selected
+              </p>
+            )}
+          </>
+        )}
+        {error && <p className="text-red-500 mt-2">{error}</p>}
+      </div>
+
+      {files.length > 0 && !isConverting && (
+        <div className="flex flex-col items-center gap-4 mt-8 w-full max-w-xl">
+          <div className="space-y-2 w-full">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={file.newName}
+                  onChange={(e) => handleNameChange(index, e.target.value)}
+                  className="input"
+                  placeholder="Enter file name"
+                />
+                <span className="text-gray-400">.{options.format}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-4 items-center justify-center">
+            <select
+              value={options.format}
+              onChange={(e) => setOptions({ ...options, format: e.target.value as "png" | "jpg" })}
+              className="input max-w-[100px]"
+            >
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+            </select>
+
+            <div className="flex items-center gap-2">
+              <label>Quality:</label>
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={options.quality}
+                onChange={(e) => setOptions({ ...options, quality: Number(e.target.value) })}
+                className="w-32"
+              />
+              <span>{options.quality}%</span>
+            </div>
+
+            <button
+              onClick={() => void handleConvert()}
+              className="btn btn-primary"
+            >
+              Convert Files
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,7 +8,7 @@ export default function Home() {
         <div className="container px-4 mx-auto">
           <div className="flex flex-col items-center text-center">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 mb-6">
-              Quick Tools For Images
+              Quick Convert
             </h1>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mb-8">
               Hi, I'm Archer. Theo built this site because he was annoyed. I built this version because I thought it was cool and HEIC files annoy me.
