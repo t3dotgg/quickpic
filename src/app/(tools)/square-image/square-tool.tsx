@@ -4,52 +4,7 @@ import React, { useState, useEffect, type ChangeEvent } from "react";
 import { usePlausible } from "next-plausible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
-export const SquareTool: React.FC = () => {
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white" | "accent"
-  >("squareTool_backgroundColor", "white");
-  const [accentColor, setAccentColor] = useState<string>("rgb(255,255,255)");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
-  const plausible = usePlausible();
-
-  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImageMetadata({ width: 0, height: 0, name: file.name });
-    }
-  };
-
-  const handleBackgroundColorChange = (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    const color = event.target.value as "black" | "white" | "accent";
-    setBackgroundColor(color);
-  };
-
-  const handleSaveImage = () => {
-    if (canvasDataUrl && imageMetadata) {
-      const link = document.createElement("a");
-      link.href = canvasDataUrl;
-      const originalFileName = imageMetadata.name;
-      const fileNameWithoutExtension =
-        originalFileName.substring(0, originalFileName.lastIndexOf(".")) ||
-        originalFileName;
-      link.download = `${fileNameWithoutExtension}-squared.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  const calculateAccentColor = (imgSrc: string): Promise<string> => {
+const calculateAccentColor = (imgSrc: string): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -102,6 +57,53 @@ export const SquareTool: React.FC = () => {
     });
   };
 
+
+export const SquareTool: React.FC = () => {
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [backgroundColor, setBackgroundColor] = useLocalStorage<
+    "black" | "white" | "accent"
+  >("squareTool_backgroundColor", "white");
+  const [accentColor, setAccentColor] = useState<string>("rgb(255,255,255)");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
+  const [imageMetadata, setImageMetadata] = useState<{
+    width: number;
+    height: number;
+    name: string;
+  } | null>(null);
+  const plausible = usePlausible();
+
+  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImageMetadata({ width: 0, height: 0, name: file.name });
+    }
+  };
+
+  const handleBackgroundColorChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const color = event.target.value as "black" | "white" | "accent";
+    setBackgroundColor(color);
+  };
+
+  const handleSaveImage = () => {
+    if (canvasDataUrl && imageMetadata) {
+      const link = document.createElement("a");
+      link.href = canvasDataUrl;
+      const originalFileName = imageMetadata.name;
+      const fileNameWithoutExtension =
+        originalFileName.substring(0, originalFileName.lastIndexOf(".")) ||
+        originalFileName;
+      link.download = `${fileNameWithoutExtension}-squared.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  
   useEffect(() => {
     if (imageFile) {
       const reader = new FileReader();
@@ -176,7 +178,6 @@ export const SquareTool: React.FC = () => {
     }
   }, [imageFile, backgroundColor, accentColor]);
 
-  // Rest of the component remains the same...
 
   if (!imageMetadata) {
     return (
