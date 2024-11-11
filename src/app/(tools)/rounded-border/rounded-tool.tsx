@@ -1,15 +1,14 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState, useCallback, useEffect } from "react";
-import type { ChangeEvent } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import React from "react";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
-import { useClipboardPaste } from "@/hooks/use-clipboard-paste";
 import { BorderRadiusSelector } from "@/components/border-radius-selector";
 import { useFileState } from "@/lib/file-context";
 import { createFileChangeEvent } from "@/lib/file-utils";
+import { useFileUploader } from "@/hooks/use-file-uploader";
 
 type Radius = number;
 
@@ -74,57 +73,6 @@ function useImageConverter(props: {
     canvasProps: { width: width, height: height },
   };
 }
-
-export const useFileUploader = () => {
-  const [imageContent, setImageContent] = useState<string>("");
-
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
-
-  const processFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      const img = new Image();
-      img.onload = () => {
-        setImageMetadata({
-          width: img.width,
-          height: img.height,
-          name: file.name,
-        });
-        setImageContent(content);
-      };
-      img.src = content;
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      processFile(file);
-    }
-  };
-
-  const handleFilePaste = useCallback((file: File) => {
-    processFile(file);
-  }, []);
-
-  useClipboardPaste({
-    onPaste: handleFilePaste,
-    acceptedFileTypes: ["image/*", ".jpg", ".jpeg", ".png", ".webp"],
-  });
-
-  const cancel = () => {
-    setImageContent("");
-    setImageMetadata(null);
-  };
-
-  return { imageContent, imageMetadata, handleFileUpload, cancel };
-};
 
 interface ImageRendererProps {
   imageContent: string;

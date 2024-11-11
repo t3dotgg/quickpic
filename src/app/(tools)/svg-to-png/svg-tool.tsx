@@ -80,45 +80,46 @@ function useSvgConverter(props: {
   };
 }
 
-export const useFileUploader = () => {
-  const [svgContent, setSvgContent] = useState<string>("");
+// export const useFileUploader = () => {
+//   const [svgContent, setSvgContent] = useState<string>("");
 
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
+//   const [imageMetadata, setImageMetadata] = useState<{
+//     width: number;
+//     height: number;
+//     name: string;
+//   } | null>(null);
 
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
+//   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+//     const file = event.target.files?.[0];
+//     if (file) {
+//       const reader = new FileReader();
+//       reader.onload = (e) => {
+//         const content = e.target?.result as string;
 
-        // Extract width and height from SVG content
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(content, "image/svg+xml");
-        const svgElement = svgDoc.documentElement;
-        const width = parseInt(svgElement.getAttribute("width") ?? "300");
-        const height = parseInt(svgElement.getAttribute("height") ?? "150");
+//         // Extract width and height from SVG content
+//         const parser = new DOMParser();
+//         const svgDoc = parser.parseFromString(content, "image/svg+xml");
+//         const svgElement = svgDoc.documentElement;
+//         const width = parseInt(svgElement.getAttribute("width") ?? "300");
+//         const height = parseInt(svgElement.getAttribute("height") ?? "150");
 
-        setSvgContent(content);
-        setImageMetadata({ width, height, name: file.name });
-      };
-      reader.readAsText(file);
-    }
-  };
+//         setSvgContent(content);
+//         setImageMetadata({ width, height, name: file.name });
+//       };
+//       reader.readAsText(file);
+//     }
+//   };
 
-  const cancel = () => {
-    setSvgContent("");
-    setImageMetadata(null);
-  };
+//   const cancel = () => {
+//     setSvgContent("");
+//     setImageMetadata(null);
+//   };
 
-  return { svgContent, imageMetadata, handleFileUpload, cancel };
-};
+//   return { svgContent, imageMetadata, handleFileUpload, cancel };
+// };
 
 import React from "react";
+import { useFileUploader } from "@/hooks/use-file-uploader";
 
 interface SVGRendererProps {
   svgContent: string;
@@ -180,7 +181,7 @@ function SaveAsPngButton({
 
 export function SVGTool() {
   const { currentFile } = useFileState();
-  const { svgContent, imageMetadata, handleFileUpload, cancel } =
+  const { imageContent, imageMetadata, handleFileUpload, cancel } =
     useFileUploader();
 
   // React to file changes from drag and drop
@@ -214,7 +215,7 @@ export function SVGTool() {
     <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
       {/* Preview Section */}
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
-        <SVGRenderer svgContent={svgContent} />
+        <SVGRenderer svgContent={imageContent} />
         <p className="text-lg font-medium text-white/80">
           {imageMetadata.name}
         </p>
@@ -257,7 +258,7 @@ export function SVGTool() {
           Cancel
         </button>
         <SaveAsPngButton
-          svgContent={svgContent}
+          svgContent={imageContent}
           scale={effectiveScale}
           imageMetadata={imageMetadata}
         />
