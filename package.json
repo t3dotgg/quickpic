@@ -18,14 +18,13 @@
     "babel-plugin-react-compiler": "0.0.0-experimental-734b737-20241003",
     "browser-image-compression": "^2.0.2",
     "heic-convert": "^2.1.0",
-    "heic2any": "^0.0.4",
     "jszip": "^3.10.1",
     "libheif-js": "^1.18.2",
     "next": "15.0.0-rc.1",
     "next-plausible": "^3.12.2",
     "react": "19.0.0-rc-cd22717c-20241013",
     "react-dom": "19.0.0-rc-cd22717c-20241013",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.3.5"
   },
   "devDependencies": {
     "@types/eslint": "^8.56.10",

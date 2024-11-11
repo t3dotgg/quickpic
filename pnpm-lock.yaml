@@ -21,9 +21,6 @@ importers:
       heic-convert:
         specifier: ^2.1.0
         version: 2.1.0
-      heic2any:
-        specifier: ^0.0.4
-        version: 0.0.4
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -43,7 +40,7 @@ importers:
         specifier: 19.0.0-rc-cd22717c-20241013
         version: 19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013)
       react-dropzone:
-        specifier: ^14.2.3
+        specifier: ^14.3.5
         version: 14.3.5(react@19.0.0-rc-cd22717c-20241013)
     devDependencies:
       '@types/eslint':
@@ -1036,9 +1033,6 @@ packages:
   heic-decode@2.0.0:
     resolution: {integrity: sha512-NU+zsiDvdL+EebyTjrEqjkO2XYI7FgLhQzsbmO8dnnYce3S0PBSDm/ZyI4KpcGPXYEdb5W72vp/AQFuc4F8ASg==}
     engines: {node: '>=8.0.0'}
-
-  heic2any@0.0.4:
-    resolution: {integrity: sha512-3lLnZiDELfabVH87htnRolZ2iehX9zwpRyGNz22GKXIu0fznlblf0/ftppXKNqS26dqFSeqfIBhAmAj/uSp0cA==}
 
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
@@ -3133,8 +3127,6 @@ snapshots:
   heic-decode@2.0.0:
     dependencies:
       libheif-js: 1.18.2
-
-  heic2any@0.0.4: {}
 
   ignore@5.3.2: {}
 
