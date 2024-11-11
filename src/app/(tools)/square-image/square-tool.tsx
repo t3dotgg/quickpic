@@ -137,7 +137,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   );
 }
 
-export const SquareTool: React.FC = () => {
+export function SquareTool() {
   const fileUploaderProps = useFileUploader();
 
   return (
@@ -149,4 +149,4 @@ export const SquareTool: React.FC = () => {
       <SquareToolCore fileUploaderProps={fileUploaderProps} />
     </FileDropzone>
   );
-};
+}

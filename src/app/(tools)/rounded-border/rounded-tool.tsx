@@ -1,8 +1,7 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import React from "react";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
 import { BorderRadiusSelector } from "@/components/border-radius-selector";
@@ -82,14 +81,14 @@ interface ImageRendererProps {
   background: BackgroundOption;
 }
 
-const ImageRenderer: React.FC<ImageRendererProps> = ({
+const ImageRenderer = ({
   imageContent,
   radius,
   background,
-}) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+}: ImageRendererProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (containerRef.current) {
       const imgElement = containerRef.current.querySelector("img");
       if (imgElement) {
@@ -125,9 +124,7 @@ function SaveAsPngButton({
   background: BackgroundOption;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null,
-  );
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
   const { convertToPng, canvasProps } = useImageConverter({
     canvas: canvasRef,
     imageContent,

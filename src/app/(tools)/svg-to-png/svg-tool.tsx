@@ -79,7 +79,7 @@ interface SVGRendererProps {
   svgContent: string;
 }
 
-const SVGRenderer: React.FC<SVGRendererProps> = ({ svgContent }) => {
+function SVGRenderer({ svgContent }: SVGRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,7 +94,7 @@ const SVGRenderer: React.FC<SVGRendererProps> = ({ svgContent }) => {
   }, [svgContent]);
 
   return <div ref={containerRef} />;
-};
+}
 
 function SaveAsPngButton({
   svgContent,

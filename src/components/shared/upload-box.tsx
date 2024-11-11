@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 interface UploadBoxProps {
@@ -10,13 +8,13 @@ interface UploadBoxProps {
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const UploadBox: React.FC<UploadBoxProps> = ({
+export function UploadBox({
   title,
   subtitle,
   description,
   accept,
   onChange,
-}) => {
+}: UploadBoxProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4">
       <div className="flex flex-col items-center gap-2">
@@ -55,4 +53,4 @@ export const UploadBox: React.FC<UploadBoxProps> = ({
       </div>
     </div>
   );
-};
+}

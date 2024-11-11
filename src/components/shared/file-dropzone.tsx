@@ -7,12 +7,12 @@ interface FileDropzoneProps {
   setCurrentFile: (file: File) => void;
 }
 
-export const FileDropzone: React.FC<FileDropzoneProps> = ({
+export function FileDropzone({
   children,
   acceptedFileTypes,
   dropText,
   setCurrentFile,
-}) => {
+}: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
 
@@ -93,4 +93,4 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
       {children}
     </div>
   );
-};
+}
