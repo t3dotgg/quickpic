@@ -36,7 +36,8 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       if (!ctx) return;
 
       // Fill background
-      ctx.fillStyle = backgroundColor === "custom" ? customColor : backgroundColor;
+      ctx.fillStyle =
+        backgroundColor === "custom" ? customColor : backgroundColor;
       ctx.fillRect(0, 0, size, size);
 
       // Load and center the image
