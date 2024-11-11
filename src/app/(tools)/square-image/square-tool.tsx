@@ -143,7 +143,7 @@ export const SquareTool: React.FC = () => {
   return (
     <FileDropzone
       setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp"]}
+      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"]}
       dropText="Drop image file"
     >
       <SquareToolCore fileUploaderProps={fileUploaderProps} />

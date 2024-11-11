@@ -248,7 +248,7 @@ export function RoundedTool() {
   return (
     <FileDropzone
       setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp"]}
+      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"]}
       dropText="Drop image file"
     >
       <RoundedToolCore fileUploaderProps={fileUploaderProps} />
