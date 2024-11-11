@@ -1,5 +1,10 @@
 import type { ChangeEvent } from "react";
 
+// Create a no-op function that satisfies the linter
+const noop = () => {
+  /* intentionally empty */
+};
+
 export function createFileChangeEvent(
   file: File,
 ): ChangeEvent<HTMLInputElement> {
@@ -17,8 +22,8 @@ export function createFileChangeEvent(
   return {
     target: target as HTMLInputElement,
     currentTarget: target as HTMLInputElement,
-    preventDefault: () => {},
-    stopPropagation: () => {},
+    preventDefault: noop,
+    stopPropagation: noop,
     bubbles: true,
     cancelable: true,
     timeStamp: Date.now(),
@@ -27,6 +32,6 @@ export function createFileChangeEvent(
     isDefaultPrevented: () => false,
     isPropagationStopped: () => false,
     isTrusted: true,
-    persist: () => {},
+    persist: noop,
   } as ChangeEvent<HTMLInputElement>;
 }
