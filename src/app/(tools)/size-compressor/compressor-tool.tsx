@@ -1,8 +1,5 @@
 "use client";
-
 import { useState, type ChangeEvent, useEffect } from "react";
-import type { Options } from "browser-image-compression";
-import imageCompression from "browser-image-compression";
 
 export default function ImageSizeCompressor() {
   const [images, setImages] = useState<File[]>([]);
@@ -56,49 +53,69 @@ export default function ImageSizeCompressor() {
     let isMounted = true;
 
     async function generateCompressedPreview() {
-      if (!images[0]) {
+      if (images[0] === undefined) {
         setCompressedPreview(null);
         setCompressedSize("");
         return;
       }
 
       try {
+        // Just a loading state
         setIsCompressing(true);
-        const options: Options = {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-          initialQuality: quality,
-        };
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        const compressedFile = await imageCompression(images[0], options);
+        // Using the canvas
 
-        if (!isMounted) return;
+        // Create an image element to load the original image
+        const img = new Image();
+        const imageUrl = URL.createObjectURL(images[0]);
 
-        if (!(compressedFile instanceof File) || !compressedFile.size) {
-          throw new Error("Invalid compressed file");
-        }
+        img.onload = () => {
+          // Create canvas
+          const canvas = document.createElement("canvas");
 
-        setCompressedSize(formatFileSize(compressedFile.size));
+          // Calculate new dimensions while maintaining aspect ratio
+          let width = img.width;
+          let height = img.height;
+          const maxDimension = 1920;
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (!isMounted) return;
-
-          if (typeof reader.result !== "string") {
-            console.error("Invalid reader result type");
-            return;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height / width) * maxDimension;
+              width = maxDimension;
+            } else {
+              width = (width / height) * maxDimension;
+              height = maxDimension;
+            }
           }
 
-          setCompressedPreview(reader.result);
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw image on canvas
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to blob with quality setting
+          canvas.toBlob(
+            (blob) => {
+              if (!blob || !isMounted) return;
+
+              const compressedFile = new File([blob], images[0]!.name, {
+                type: "image/jpeg",
+                lastModified: Date.now(),
+              });
+
+              setCompressedSize(formatFileSize(compressedFile.size));
+              setCompressedPreview(URL.createObjectURL(compressedFile));
+            },
+            "image/jpeg",
+            quality,
+          );
         };
 
-        reader.onerror = () => {
-          console.error("Error reading compressed file");
-        };
-
-        reader.readAsDataURL(compressedFile);
+        img.src = imageUrl;
       } catch (error) {
         console.error("Error generating preview:", error);
         if (isMounted) {
@@ -124,16 +141,57 @@ export default function ImageSizeCompressor() {
 
   async function handleCompress() {
     try {
-      const options: Options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-        initialQuality: quality,
-      };
+      const compressedFiles = await Promise.all(
+        images.map(async (image) => {
+          return new Promise<File>((resolve, reject) => {
+            const img = new Image();
+            const imageUrl = URL.createObjectURL(image);
 
-      const compressedFiles = await Promise.all<File>(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-        images.map((image) => imageCompression(image, options)),
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              let width = img.width;
+              let height = img.height;
+              const maxDimension = 1920;
+
+              if (width > maxDimension || height > maxDimension) {
+                if (width > height) {
+                  height = (height / width) * maxDimension;
+                  width = maxDimension;
+                } else {
+                  width = (width / height) * maxDimension;
+                  height = maxDimension;
+                }
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+
+              const ctx = canvas.getContext("2d");
+              if (!ctx)
+                return reject(new Error("Could not get canvas context"));
+
+              ctx.drawImage(img, 0, 0, width, height);
+
+              canvas.toBlob(
+                (blob) => {
+                  if (!blob) return reject(new Error("Could not create blob"));
+
+                  const compressedFile = new File([blob], image.name, {
+                    type: "image/jpeg",
+                    lastModified: Date.now(),
+                  });
+
+                  resolve(compressedFile);
+                },
+                "image/jpeg",
+                quality,
+              );
+            };
+
+            img.onerror = () => reject(new Error("Could not load image"));
+            img.src = imageUrl;
+          });
+        }),
       );
 
       compressedFiles.forEach((file, index) => {
