@@ -45,13 +45,6 @@ export const SquareTool: React.FC = () => {
     acceptedFileTypes: ["image/*", ".jpg", ".jpeg", ".png", ".webp"],
   });
 
-  const handleBackgroundColorChange = (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    const color = event.target.value as "black" | "white";
-    setBackgroundColor(color);
-  };
-
   const handleSaveImage = () => {
     if (canvasDataUrl && imageMetadata) {
       const link = document.createElement("a");
