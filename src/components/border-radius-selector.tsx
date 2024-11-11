@@ -41,20 +41,22 @@ export function BorderRadiusSelector({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-    
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+
     e.preventDefault();
     const currentValue = customValue ?? 0;
     let step = 1;
 
     if (e.shiftKey) step = 10;
     if (e.altKey) step = 0.1;
-    
-    const newValue = e.key === 'ArrowUp' 
-      ? currentValue + step 
-      : currentValue - step;
-      
-    const clampedValue = Math.min(999, Math.max(0, Number(newValue.toFixed(1))));
+
+    const newValue =
+      e.key === "ArrowUp" ? currentValue + step : currentValue - step;
+
+    const clampedValue = Math.min(
+      999,
+      Math.max(0, Number(newValue.toFixed(1))),
+    );
     onCustomValueChange?.(clampedValue);
   };
 
@@ -74,7 +76,9 @@ export function BorderRadiusSelector({
             <button
               key={String(option)}
               ref={option === selected ? selectedRef : null}
-              onClick={() => onChange(typeof option === "number" ? option : "custom")}
+              onClick={() =>
+                onChange(typeof option === "number" ? option : "custom")
+              }
               className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 option === selected
                   ? "text-white"
@@ -105,4 +109,4 @@ export function BorderRadiusSelector({
       </div>
     </div>
   );
-} 
+}
