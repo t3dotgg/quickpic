@@ -16,6 +16,8 @@ type Radius = number;
 
 type BackgroundOption = "white" | "black" | "transparent";
 
+const acceptedFileTypes = ["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"];
+
 function useImageConverter(props: {
   canvas: HTMLCanvasElement | null;
   imageContent: string;
@@ -177,7 +179,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         title="Add rounded borders to your images. Quick and easy."
         subtitle="Allows pasting images from clipboard"
         description="Upload Image"
-        accept="image/*"
+        accept={acceptedFileTypes.join(", ")}
         onChange={handleFileUploadEvent}
       />
     );
@@ -241,12 +243,12 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 }
 
 export function RoundedTool() {
-  const fileUploaderProps = useFileUploader();
+  const fileUploaderProps = useFileUploader(acceptedFileTypes);
 
   return (
     <FileDropzone
       setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"]}
+      acceptedFileTypes={acceptedFileTypes}
       dropText="Drop image file"
     >
       <RoundedToolCore fileUploaderProps={fileUploaderProps} />

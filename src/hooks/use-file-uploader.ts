@@ -1,5 +1,6 @@
-import { useCallback } from "react";
-import { type ChangeEvent, useState } from "react";
+import { validateFileType } from "@/lib/file-utils";
+import { type ChangeEvent, useCallback, useState } from "react";
+import { toast } from "sonner";
 import { useClipboardPaste } from "./use-clipboard-paste";
 
 const parseSvgFile = (content: string, fileName: string) => {
@@ -73,7 +74,9 @@ export type FileUploaderResult = {
  * - handleFileUpload: Function to handle file input change events
  * - cancel: Function to reset the upload state
  */
-export const useFileUploader = (): FileUploaderResult => {
+export const useFileUploader = (
+  supportedFileTypes: string[],
+): FileUploaderResult => {
   const [imageContent, setImageContent] = useState<string>("");
   const [rawContent, setRawContent] = useState<string>("");
   const [imageMetadata, setImageMetadata] = useState<{
@@ -114,9 +117,31 @@ export const useFileUploader = (): FileUploaderResult => {
 
   const handleFileUploadEvent = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      processFile(file);
+
+    if (!file) {
+      toast.error("Error loading file!", {
+        description:
+          "Please try uploading the file again or pick a different one.",
+      });
+
+      throw new Error("No file loaded");
     }
+
+    const verify = validateFileType(supportedFileTypes, file.type);
+
+    if (!verify.isValid) {
+      if (verify.type === "UNKNOWN") {
+        throw new Error("Invalid supportedFileTypes may have been set wrong.");
+      }
+
+      toast.error("Error uploading file!", {
+        description: `Only ${verify.type === "IMAGE" ? "Images" : "SVGs"} are supported.`,
+      });
+
+      return;
+    }
+
+    processFile(file);
   };
 
   const handleFilePaste = useCallback((file: File) => {

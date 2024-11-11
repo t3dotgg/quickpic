@@ -11,6 +11,8 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { usePlausible } from "next-plausible";
 import { useEffect, useState } from "react";
 
+const acceptedFileTypes = ["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"];
+
 function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
     props.fileUploaderProps;
@@ -72,7 +74,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         title="Create square images with custom backgrounds. Fast and free."
         subtitle="Allows pasting images from clipboard"
         description="Upload Image"
-        accept="image/*"
+        accept={acceptedFileTypes.join(", ")}
         onChange={handleFileUploadEvent}
       />
     );
@@ -138,12 +140,12 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 }
 
 export function SquareTool() {
-  const fileUploaderProps = useFileUploader();
+  const fileUploaderProps = useFileUploader(acceptedFileTypes);
 
   return (
     <FileDropzone
       setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"]}
+      acceptedFileTypes={acceptedFileTypes}
       dropText="Drop image file"
     >
       <SquareToolCore fileUploaderProps={fileUploaderProps} />

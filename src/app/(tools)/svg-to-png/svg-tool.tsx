@@ -8,6 +8,8 @@ import { SVGScaleSelector } from "@/components/svg-scale-selector";
 
 export type Scale = "custom" | number;
 
+const acceptedFileTypes = ["image/svg+xml", ".svg"];
+
 function scaleSvg(svgContent: string, scale: number) {
   const parser = new DOMParser();
   const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
@@ -155,7 +157,7 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       <UploadBox
         title="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
         description="Upload SVG"
-        accept=".svg"
+        accept={acceptedFileTypes.join(", ")}
         onChange={handleFileUploadEvent}
       />
     );
@@ -217,11 +219,11 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 }
 
 export function SVGTool() {
-  const fileUploaderProps = useFileUploader();
+  const fileUploaderProps = useFileUploader(acceptedFileTypes);
   return (
     <FileDropzone
       setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/svg+xml", ".svg"]}
+      acceptedFileTypes={acceptedFileTypes}
       dropText="Drop SVG file"
     >
       <SVGToolCore fileUploaderProps={fileUploaderProps} />
