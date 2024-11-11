@@ -37,11 +37,11 @@ export function OptionSelector<T extends string | number>({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <span className="text-sm text-white/60">{title}</span>
+      <span className="text-sm dark:text-white/60">{title}</span>
       <div className="flex flex-col items-center gap-2">
         <div
           ref={containerRef}
-          className="relative inline-flex rounded-lg bg-white/5 p-1"
+          className="relative inline-flex gap-2 rounded-lg bg-white/5 p-1"
         >
           <div
             ref={highlightRef}
@@ -55,7 +55,7 @@ export function OptionSelector<T extends string | number>({
               className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 option === selected
                   ? "text-white"
-                  : "text-white/80 hover:text-white"
+                  : "bg-gray-200 dark:bg-inherit dark:text-white/80 dark:hover:text-white"
               }`}
             >
               {formatOption(option)}

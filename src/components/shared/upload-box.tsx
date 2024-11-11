@@ -18,14 +18,14 @@ export function UploadBox({
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4">
       <div className="flex flex-col items-center gap-2">
-        <p className="text-center text-white">{title}</p>
+        <p className="text-center dark:text-white">{title}</p>
         {subtitle && (
-          <p className="inline-block rounded-full border border-white/30 bg-white/5 px-2 py-0.5 text-center text-sm text-white/60">
+          <p className="inline-block rounded-full border px-2 py-0.5 text-center text-sm dark:border-white/30 dark:bg-white/5 dark:text-white/60">
             {subtitle}
           </p>
         )}
       </div>
-      <div className="flex w-72 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-white/30 bg-white/10 p-6 backdrop-blur-sm">
+      <div className="flex w-72 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed p-6 backdrop-blur-sm dark:border-white/30 dark:bg-white/10">
         <svg
           className="h-8 w-8 text-gray-400"
           fill="none"

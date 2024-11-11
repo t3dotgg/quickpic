@@ -62,11 +62,11 @@ export function BorderRadiusSelector({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <span className="text-sm text-white/60">{title}</span>
+      <span className="text-sm dark:text-white/60">{title}</span>
       <div className="flex flex-col items-center gap-2">
         <div
           ref={containerRef}
-          className="relative inline-flex rounded-lg bg-white/5 p-1"
+          className="relative inline-flex gap-2 rounded-lg p-1 dark:bg-white/5"
         >
           <div
             ref={highlightRef}
@@ -81,8 +81,8 @@ export function BorderRadiusSelector({
               }
               className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 option === selected
-                  ? "text-white"
-                  : "text-white/80 hover:text-white"
+                  ? "dark:text-white"
+                  : "bg-gray-200 dark:bg-white/5 dark:text-white/80 dark:hover:text-white"
               }`}
             >
               {option === "custom" ? "Custom" : option}
@@ -99,10 +99,12 @@ export function BorderRadiusSelector({
                 value={customValue}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                className="w-24 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-white"
+                className="w-24 rounded-lg bg-gray-200 px-3 py-1.5 text-sm dark:bg-white/5 dark:text-white"
                 placeholder="Enter radius"
               />
-              <span className="absolute right-3 text-sm text-white/60">px</span>
+              <span className="absolute right-3 text-sm dark:text-white/60">
+                px
+              </span>
             </div>
           </div>
         )}

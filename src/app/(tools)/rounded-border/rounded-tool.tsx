@@ -195,9 +195,9 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         </p>
       </div>
 
-      <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-        <span className="text-sm text-white/60">Original Size</span>
-        <span className="font-medium text-white">
+      <div className="flex flex-col items-center rounded-lg p-3 dark:bg-white/5">
+        <span className="text-sm dark:text-white/60">Original Size</span>
+        <span className="font-medium dark:text-white">
           {imageMetadata.width} × {imageMetadata.height}
         </span>
       </div>

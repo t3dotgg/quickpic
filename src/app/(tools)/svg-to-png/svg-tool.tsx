@@ -165,23 +165,23 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       {/* Preview Section */}
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         <SVGRenderer svgContent={rawContent} />
-        <p className="text-lg font-medium text-white/80">
+        <p className="text-lg font-medium dark:text-white/80">
           {imageMetadata.name}
         </p>
       </div>
 
       {/* Size Information */}
       <div className="flex gap-6 text-base">
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Original</span>
-          <span className="font-medium text-white">
+        <div className="flex flex-col items-center rounded-lg bg-gray-200 p-3 dark:bg-white/5">
+          <span className="text-sm dark:text-white/60">Original</span>
+          <span className="font-medium dark:text-white">
             {imageMetadata.width} × {imageMetadata.height}
           </span>
         </div>
 
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Scaled</span>
-          <span className="font-medium text-white">
+        <div className="flex flex-col items-center rounded-lg bg-gray-200 p-3 dark:bg-white/5">
+          <span className="text-sm dark:text-white/60">Scaled</span>
+          <span className="font-medium dark:text-white">
             {imageMetadata.width * effectiveScale} ×{" "}
             {imageMetadata.height * effectiveScale}
           </span>
