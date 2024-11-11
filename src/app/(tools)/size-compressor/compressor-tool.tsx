@@ -4,7 +4,6 @@ import { useState, type ChangeEvent, useEffect } from "react";
 export default function ImageSizeCompressor() {
   const [images, setImages] = useState<File[]>([]);
   const [quality, setQuality] = useState(0.8);
-  const [previews, setPreviews] = useState<string[]>([]);
   const [compressedPreview, setCompressedPreview] = useState<string | null>(
     null,
   );
@@ -20,112 +19,76 @@ export default function ImageSizeCompressor() {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   }
 
+  async function compressImage(image: File, quality: number): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const imageUrl = URL.createObjectURL(image);
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const maxDimension = 1920;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("Could not get canvas context"));
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject(new Error("Could not create blob"));
+
+            const compressedFile = new File([blob], image.name, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          quality,
+        );
+      };
+
+      img.onerror = () => reject(new Error("Could not load image"));
+      img.src = imageUrl;
+    });
+  }
+
   function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) return;
 
     const newFiles = Array.from(e.target.files);
     setImages((prev) => [...prev, ...newFiles]);
-
-    newFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviews((prev) => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
-
-    if (newFiles[0]) {
-      setOriginalSize(formatFileSize(newFiles[0].size));
-    }
-  }
-
-  function removeImage(index: number) {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-    setPreviews((prev) => prev.filter((_, i) => i !== index));
-    if (index === 0) {
-      setCompressedPreview(null);
-      setOriginalSize("");
-      setCompressedSize("");
-    }
   }
 
   useEffect(() => {
-    let isMounted = true;
+    if (images[0] === undefined) return;
+    setOriginalSize(formatFileSize(images[0].size));
 
     async function generateCompressedPreview() {
-      if (images[0] === undefined) {
-        setCompressedPreview(null);
-        setCompressedSize("");
-        return;
-      }
-
+      if (images[0] === undefined) return;
+      setIsCompressing(true);
       try {
-        // Just a loading state
-        setIsCompressing(true);
-
-        // Using the canvas
-
-        // Create an image element to load the original image
-        const img = new Image();
-        const imageUrl = URL.createObjectURL(images[0]);
-
-        img.onload = () => {
-          // Create canvas
-          const canvas = document.createElement("canvas");
-
-          // Calculate new dimensions while maintaining aspect ratio
-          let width = img.width;
-          let height = img.height;
-          const maxDimension = 1920;
-
-          if (width > maxDimension || height > maxDimension) {
-            if (width > height) {
-              height = (height / width) * maxDimension;
-              width = maxDimension;
-            } else {
-              width = (width / height) * maxDimension;
-              height = maxDimension;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-
-          // Draw image on canvas
-          const ctx = canvas.getContext("2d");
-          if (!ctx) return;
-
-          ctx.drawImage(img, 0, 0, width, height);
-
-          // Convert to blob with quality setting
-          canvas.toBlob(
-            (blob) => {
-              if (!blob || !isMounted) return;
-
-              const compressedFile = new File([blob], images[0]!.name, {
-                type: "image/jpeg",
-                lastModified: Date.now(),
-              });
-
-              setCompressedSize(formatFileSize(compressedFile.size));
-              setCompressedPreview(URL.createObjectURL(compressedFile));
-            },
-            "image/jpeg",
-            quality,
-          );
-        };
-
-        img.src = imageUrl;
-      } catch (error) {
-        console.error("Error generating preview:", error);
-        if (isMounted) {
-          setCompressedPreview(null);
-          setCompressedSize("");
-        }
+        const compressedFile = await compressImage(images[0], quality);
+        setCompressedPreview(URL.createObjectURL(compressedFile));
+        setCompressedSize(formatFileSize(compressedFile.size));
       } finally {
-        if (isMounted) {
-          setIsCompressing(false);
-        }
+        setIsCompressing(false);
       }
     }
 
@@ -134,64 +97,24 @@ export default function ImageSizeCompressor() {
     }, 300);
 
     return () => {
-      isMounted = false;
       clearTimeout(debounceTimeout);
     };
-  }, [quality, images]);
+  }, [images, quality]);
+
+  function removeImage(index: number) {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    if (index === 0) {
+      setCompressedPreview(null);
+      setOriginalSize("");
+      setCompressedSize("");
+    }
+  }
 
   async function handleCompress() {
     try {
+      setIsCompressing(true);
       const compressedFiles = await Promise.all(
-        images.map(async (image) => {
-          return new Promise<File>((resolve, reject) => {
-            const img = new Image();
-            const imageUrl = URL.createObjectURL(image);
-
-            img.onload = () => {
-              const canvas = document.createElement("canvas");
-              let width = img.width;
-              let height = img.height;
-              const maxDimension = 1920;
-
-              if (width > maxDimension || height > maxDimension) {
-                if (width > height) {
-                  height = (height / width) * maxDimension;
-                  width = maxDimension;
-                } else {
-                  width = (width / height) * maxDimension;
-                  height = maxDimension;
-                }
-              }
-
-              canvas.width = width;
-              canvas.height = height;
-
-              const ctx = canvas.getContext("2d");
-              if (!ctx)
-                return reject(new Error("Could not get canvas context"));
-
-              ctx.drawImage(img, 0, 0, width, height);
-
-              canvas.toBlob(
-                (blob) => {
-                  if (!blob) return reject(new Error("Could not create blob"));
-
-                  const compressedFile = new File([blob], image.name, {
-                    type: "image/jpeg",
-                    lastModified: Date.now(),
-                  });
-
-                  resolve(compressedFile);
-                },
-                "image/jpeg",
-                quality,
-              );
-            };
-
-            img.onerror = () => reject(new Error("Could not load image"));
-            img.src = imageUrl;
-          });
-        }),
+        images.map((image) => compressImage(image, quality)),
       );
 
       compressedFiles.forEach((file, index) => {
@@ -203,6 +126,8 @@ export default function ImageSizeCompressor() {
       });
     } catch (error) {
       console.error("Error compressing images:", error);
+    } finally {
+      setIsCompressing(false);
     }
   }
 
@@ -212,7 +137,6 @@ export default function ImageSizeCompressor() {
 
   function onCancel() {
     setImages([]);
-    setPreviews([]);
     setCompressedPreview(null);
     setOriginalSize("");
     setCompressedSize("");
@@ -241,10 +165,10 @@ export default function ImageSizeCompressor() {
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4 text-2xl">
       <div className="flex flex-wrap justify-center gap-4">
-        {previews.map((preview, index) => (
+        {images.map((image, index) => (
           <div key={index} className="relative">
             <img
-              src={preview}
+              src={URL.createObjectURL(image)}
               alt={`Preview ${index + 1}`}
               className="h-32 w-32 rounded-lg object-cover"
             />
@@ -268,6 +192,7 @@ export default function ImageSizeCompressor() {
           value={quality}
           onChange={onChangeQuality}
           className="w-full"
+          disabled={isCompressing}
         />
       </div>
 
@@ -276,7 +201,7 @@ export default function ImageSizeCompressor() {
           <div className="flex flex-col items-center gap-2">
             <span className="text-sm font-medium">Original</span>
             <img
-              src={previews[0]}
+              src={images[0] ? URL.createObjectURL(images[0]) : ""}
               alt="Original preview"
               className="h-64 w-64 rounded-lg object-cover"
             />
@@ -286,7 +211,10 @@ export default function ImageSizeCompressor() {
             <span className="text-sm font-medium">Compressed Preview</span>
             <div className="relative h-64 w-64">
               <img
-                src={compressedPreview ?? previews[0]}
+                src={
+                  compressedPreview ??
+                  (images[0] ? URL.createObjectURL(images[0]) : "")
+                }
                 alt="Compressed preview"
                 className="h-64 w-64 rounded-lg object-cover"
               />
@@ -304,13 +232,23 @@ export default function ImageSizeCompressor() {
       <div className="flex gap-2">
         <button
           onClick={handleCompress}
-          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+          disabled={isCompressing}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 ${
+            isCompressing
+              ? "cursor-not-allowed bg-gray-500"
+              : "bg-green-700 hover:bg-green-800"
+          }`}
         >
-          Download Compressed Images
+          {isCompressing ? "Compressing..." : "Download Compressed Images"}
         </button>
         <button
           onClick={onCancel}
-          className="rounded-md bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
+          disabled={isCompressing}
+          className={`rounded-md px-3 py-1 text-sm font-medium text-white transition-colors ${
+            isCompressing
+              ? "cursor-not-allowed bg-gray-500"
+              : "bg-red-700 hover:bg-red-800"
+          }`}
         >
           Cancel
         </button>
