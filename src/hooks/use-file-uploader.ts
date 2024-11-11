@@ -58,7 +58,8 @@ export type FileUploaderResult = {
     name: string;
   } | null;
   /** Handler for file input change events */
-  handleFileUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  handleFileUpload: (file: File) => void;
+  handleFileUploadEvent: (event: ChangeEvent<HTMLInputElement>) => void;
   /** Resets the upload state */
   cancel: () => void;
 };
@@ -111,7 +112,7 @@ export const useFileUploader = (): FileUploaderResult => {
     }
   };
 
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileUploadEvent = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       processFile(file);
@@ -132,5 +133,12 @@ export const useFileUploader = (): FileUploaderResult => {
     setImageMetadata(null);
   };
 
-  return { imageContent, rawContent, imageMetadata, handleFileUpload, cancel };
+  return {
+    imageContent,
+    rawContent,
+    imageMetadata,
+    handleFileUpload: processFile,
+    handleFileUploadEvent,
+    cancel,
+  };
 };

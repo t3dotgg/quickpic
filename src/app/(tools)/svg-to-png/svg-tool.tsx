@@ -1,15 +1,10 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-
-import { type ChangeEvent } from "react";
 
 import { UploadBox } from "@/components/shared/upload-box";
 import { SVGScaleSelector } from "@/components/svg-scale-selector";
-
-import { useFileState } from "@/lib/file-context";
-import { createFileChangeEvent } from "@/lib/file-utils";
 
 export type Scale = "custom" | number;
 
@@ -80,61 +75,20 @@ function useSvgConverter(props: {
   };
 }
 
-// export const useFileUploader = () => {
-//   const [svgContent, setSvgContent] = useState<string>("");
-
-//   const [imageMetadata, setImageMetadata] = useState<{
-//     width: number;
-//     height: number;
-//     name: string;
-//   } | null>(null);
-
-//   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-//     const file = event.target.files?.[0];
-//     if (file) {
-//       const reader = new FileReader();
-//       reader.onload = (e) => {
-//         const content = e.target?.result as string;
-
-//         // Extract width and height from SVG content
-//         const parser = new DOMParser();
-//         const svgDoc = parser.parseFromString(content, "image/svg+xml");
-//         const svgElement = svgDoc.documentElement;
-//         const width = parseInt(svgElement.getAttribute("width") ?? "300");
-//         const height = parseInt(svgElement.getAttribute("height") ?? "150");
-
-//         setSvgContent(content);
-//         setImageMetadata({ width, height, name: file.name });
-//       };
-//       reader.readAsText(file);
-//     }
-//   };
-
-//   const cancel = () => {
-//     setSvgContent("");
-//     setImageMetadata(null);
-//   };
-
-//   return { svgContent, imageMetadata, handleFileUpload, cancel };
-// };
-
-import React from "react";
-import { useFileUploader } from "@/hooks/use-file-uploader";
-
 interface SVGRendererProps {
   svgContent: string;
 }
 
 const SVGRenderer: React.FC<SVGRendererProps> = ({ svgContent }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (containerRef.current) {
       containerRef.current.innerHTML = svgContent;
       const svgElement = containerRef.current.querySelector("svg");
       if (svgElement) {
         svgElement.setAttribute("width", "100%");
-        svgElement.setAttribute("height", "auto");
+        svgElement.setAttribute("height", "100%");
       }
     }
   }, [svgContent]);
@@ -151,9 +105,7 @@ function SaveAsPngButton({
   scale: number;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(
-    null,
-  );
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,
     svgContent,
@@ -179,18 +131,15 @@ function SaveAsPngButton({
   );
 }
 
-export function SVGTool() {
-  const { currentFile } = useFileState();
-  const { imageContent, imageMetadata, handleFileUpload, cancel } =
-    useFileUploader();
+import {
+  type FileUploaderResult,
+  useFileUploader,
+} from "@/hooks/use-file-uploader";
+import { FileDropzone } from "@/components/shared/file-dropzone";
 
-  // React to file changes from drag and drop
-  useEffect(() => {
-    if (currentFile) {
-      const event = createFileChangeEvent(currentFile);
-      handleFileUpload(event);
-    }
-  }, [currentFile, handleFileUpload]);
+function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
+  const { rawContent, imageMetadata, handleFileUploadEvent, cancel } =
+    props.fileUploaderProps;
 
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
   const [customScale, setCustomScale] = useLocalStorage<number>(
@@ -207,7 +156,7 @@ export function SVGTool() {
         title="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
         description="Upload SVG"
         accept=".svg"
-        onChange={handleFileUpload}
+        onChange={handleFileUploadEvent}
       />
     );
 
@@ -215,7 +164,7 @@ export function SVGTool() {
     <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
       {/* Preview Section */}
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
-        <SVGRenderer svgContent={imageContent} />
+        <SVGRenderer svgContent={rawContent} />
         <p className="text-lg font-medium text-white/80">
           {imageMetadata.name}
         </p>
@@ -258,11 +207,24 @@ export function SVGTool() {
           Cancel
         </button>
         <SaveAsPngButton
-          svgContent={imageContent}
+          svgContent={rawContent}
           scale={effectiveScale}
           imageMetadata={imageMetadata}
         />
       </div>
     </div>
+  );
+}
+
+export function SVGTool() {
+  const fileUploaderProps = useFileUploader();
+  return (
+    <FileDropzone
+      setCurrentFile={fileUploaderProps.handleFileUpload}
+      acceptedFileTypes={["image/svg+xml", ".svg"]}
+      dropText="Drop SVG file"
+    >
+      <SVGToolCore fileUploaderProps={fileUploaderProps} />
+    </FileDropzone>
   );
 }

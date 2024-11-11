@@ -1,22 +1,22 @@
 "use client";
 
 import React, { useCallback, useState, useRef } from "react";
-import { useFileState } from "@/lib/file-context";
 
 interface FileDropzoneProps {
   children: React.ReactNode;
   acceptedFileTypes: string[];
   dropText: string;
+  setCurrentFile: (file: File) => void;
 }
 
 export const FileDropzone: React.FC<FileDropzoneProps> = ({
   children,
   acceptedFileTypes,
   dropText,
+  setCurrentFile,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
-  const { setCurrentFile } = useFileState();
 
   const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
