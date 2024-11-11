@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 
 const calculateAccentColor = (imgSrc: string): Promise<string> => {
-  const accentColorSet: Map<string, string> = new Map();
+  const accentColorSet: Map<string, string> = new Map(); // caching the accent color
   return new Promise((resolve) => {
     if (accentColorSet.has(imgSrc)) {
       const color = accentColorSet.get(imgSrc);
@@ -34,7 +34,7 @@ const calculateAccentColor = (imgSrc: string): Promise<string> => {
           0,
           0,
           canvas.width,
-          canvas.height,
+          canvas.height
         ).data;
         const colorMap = new Map<string, number>();
 
@@ -45,12 +45,10 @@ const calculateAccentColor = (imgSrc: string): Promise<string> => {
           const b = imageData[i + 2];
 
           // Skip white and near-white colors
-          if (r !== undefined && g !== undefined && b !== undefined) {
-            if (r > 240 && g > 240 && b > 240) continue;
+          if (r > 240 && g > 240 && b > 240) continue;
 
-            const color = `rgb(${r},${g},${b})`;
-            colorMap.set(color, (colorMap.get(color) || 0) + 1);
-          }
+          const color = `rgb(${r},${g},${b})`;
+          colorMap.set(color, (colorMap.get(color) || 0) + 1);
         }
 
         let maxCount = 0;
@@ -63,7 +61,9 @@ const calculateAccentColor = (imgSrc: string): Promise<string> => {
           }
         });
         accentColorSet.set(imgSrc, dominantColor);
-        console.log(dominantColor)
+        setTimeout(()=>{
+          accent
+        },60*1000)
         resolve(dominantColor);
       } else {
         resolve("white");
@@ -72,6 +72,7 @@ const calculateAccentColor = (imgSrc: string): Promise<string> => {
     img.src = imgSrc;
   });
 };
+
 function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
     props.fileUploaderProps;
@@ -81,7 +82,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   >("squareTool_backgroundColor", "white");
 
   const [squareImageContent, setSquareImageContent] = useState<string | null>(
-    null,
+    null
   );
 
   useEffect(() => {
@@ -94,29 +95,29 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Fill
+      // Fill background based on selected color
       if (backgroundColor === "accent") {
-        calculateAccentColor(imageContent).then((imageContent) => {
-          ctx.fillStyle = imageContent;
-      ctx.fillRect(0, 0, size, size);
-
+        calculateAccentColor(imageContent).then((dominantColor) => {
+          ctx.fillStyle = dominantColor;
+          ctx.fillRect(0, 0, size, size);
+          drawImageOnCanvas(ctx);
         });
       } else {
         ctx.fillStyle = backgroundColor;
-      ctx.fillRect(0, 0, size, size);
-
+        ctx.fillRect(0, 0, size, size);
+        drawImageOnCanvas(ctx);
       }
 
-
-      // Load and center the image
-      const img = new Image();
-      img.onload = () => {
-        const x = (size - imageMetadata.width) / 2;
-        const y = (size - imageMetadata.height) / 2;
-        ctx.drawImage(img, x, y);
-        setSquareImageContent(canvas.toDataURL("image/png"));
-      };
-      img.src = imageContent;
+      function drawImageOnCanvas(ctx: CanvasRenderingContext2D) {
+        const img = new Image();
+        img.onload = () => {
+          const x = (size - imageMetadata.width) / 2;
+          const y = (size - imageMetadata.height) / 2;
+          ctx.drawImage(img, x, y);
+          setSquareImageContent(canvas.toDataURL("image/png"));
+        };
+        img.src = imageContent;
+      }
     }
   }, [imageContent, imageMetadata, backgroundColor]);
 
