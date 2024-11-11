@@ -80,7 +80,7 @@ const downloadFile = (dataURL: string, fileName: string) => {
   link.click();
 };
 
-export const useFileUploader = () => {
+const useFileUploader = () => {
   const [svgContent, setSvgContent] = useState<string>("");
 
   const [imageMetadata, setImageMetadata] = useState<{
@@ -230,8 +230,8 @@ export function SVGTool() {
         Uploaded SVG
       </span>
       <SVGRenderer svgContent={svgContent} />
-      <p>{imageMetadata.name}</p>
-      <p>
+      <p className="text-center">{imageMetadata.name}</p>
+      <p className="text-center">
         Original size: {imageMetadata.width}px x {imageMetadata.height}px
       </p>
 
@@ -239,8 +239,8 @@ export function SVGTool() {
         Preview PNG
       </span>
       <img src={png?.dataURL} alt="Converted PNG" className="w-full" />
-      <p>{png?.fileName}</p>
-      <p>
+      <p className="text-center">{png?.fileName}</p>
+      <p className="text-center">
         Scaled size: {imageMetadata.width * scale}px x{" "}
         {imageMetadata.height * scale}px
       </p>
