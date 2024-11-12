@@ -10,6 +10,7 @@ import {
   type FileUploaderResult,
 } from "@/hooks/use-file-uploader";
 import { FileDropzone } from "@/components/shared/file-dropzone";
+import { motion } from "framer-motion";
 
 type Radius = number;
 
@@ -98,15 +99,18 @@ const ImageRenderer = ({
   }, [imageContent, radius]);
 
   return (
-    <div ref={containerRef} className="relative w-[500px]">
+    <div
+      ref={containerRef}
+      className="relative flex w-[500px] items-center justify-center"
+    >
       <div
-        className="absolute inset-0"
-        style={{ backgroundColor: background, borderRadius: 0 }}
+        className="absolute inset-0 overflow-hidden"
+        style={{ backgroundColor: background, borderRadius: radius }}
       />
       <img
         src={imageContent}
         alt="Preview"
-        className="relative rounded-lg"
+        className="relative max-w-[260px] rounded-lg"
         style={{ width: "100%", height: "auto", objectFit: "contain" }}
       />
     </div>
@@ -143,7 +147,7 @@ function SaveAsPngButton({
           plausible("convert-image-to-png");
           void convertToPng();
         }}
-        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+        className="rounded-lg bg-purple-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
       >
         Save as PNG
       </button>
@@ -173,7 +177,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   if (!imageMetadata) {
     return (
       <UploadBox
-        title="Add rounded borders to your images. Quick and easy."
+        title="round your Image's border"
         subtitle="Allows pasting images from clipboard"
         description="Upload Image"
         accept="image/*"
@@ -183,14 +187,14 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-3 rounded-xl border bg-gray-400/5 p-3 backdrop-blur-3xl">
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         <ImageRenderer
           imageContent={imageContent}
           radius={radius}
           background={background}
         />
-        <p className="text-lg font-medium text-white/80">
+        <p className="rounded-full bg-purple-800 px-3 py-1 text-lg font-medium text-white">
           {imageMetadata.name}
         </p>
       </div>
@@ -224,7 +228,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       <div className="flex gap-3">
         <button
           onClick={cancel}
-          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
+          className="rounded-lg border-2 border-red-600 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white"
         >
           Cancel
         </button>
@@ -243,12 +247,35 @@ export function RoundedTool() {
   const fileUploaderProps = useFileUploader();
 
   return (
-    <FileDropzone
-      setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"]}
-      dropText="Drop image file"
-    >
-      <RoundedToolCore fileUploaderProps={fileUploaderProps} />
-    </FileDropzone>
+    <>
+      <FileDropzone
+        setCurrentFile={fileUploaderProps.handleFileUpload}
+        acceptedFileTypes={[
+          "image/*",
+          ".jpg",
+          ".jpeg",
+          ".png",
+          ".webp",
+          ".svg",
+        ]}
+        dropText="Drop image file"
+      >
+        <RoundedToolCore fileUploaderProps={fileUploaderProps} />
+      </FileDropzone>
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          // @ts-expect-error: Framer Motion types are not correct
+          className="absolute inset-0 left-[-10%] top-[50%] w-1/2 rounded-full bg-gradient-to-br from-purple-800 to-purple-600 opacity-50 blur-[250px]"
+          animate={{
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </div>
+    </>
   );
 }

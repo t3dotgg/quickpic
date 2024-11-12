@@ -123,7 +123,7 @@ function SaveAsPngButton({
           plausible("convert-svg-to-png");
           void convertToPng();
         }}
-        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+        className="rounded-lg bg-purple-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
       >
         Save as PNG
       </button>
@@ -136,6 +136,7 @@ import {
   useFileUploader,
 } from "@/hooks/use-file-uploader";
 import { FileDropzone } from "@/components/shared/file-dropzone";
+import { motion } from "framer-motion";
 
 function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { rawContent, imageMetadata, handleFileUploadEvent, cancel } =
@@ -153,7 +154,7 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   if (!imageMetadata)
     return (
       <UploadBox
-        title="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
+        title="Convert SVGs into PNGs"
         description="Upload SVG"
         accept=".svg"
         onChange={handleFileUploadEvent}
@@ -161,11 +162,11 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     );
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 rounded-xl border bg-gray-400/5 p-6 backdrop-blur-3xl">
       {/* Preview Section */}
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         <SVGRenderer svgContent={rawContent} />
-        <p className="text-lg font-medium text-white/80">
+        <p className="rounded-full bg-purple-800 px-3 py-1 text-lg font-medium text-white">
           {imageMetadata.name}
         </p>
       </div>
@@ -202,7 +203,7 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       <div className="flex gap-3">
         <button
           onClick={cancel}
-          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
+          className="rounded-lg border-2 border-red-600 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white"
         >
           Cancel
         </button>
@@ -219,12 +220,28 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 export function SVGTool() {
   const fileUploaderProps = useFileUploader();
   return (
-    <FileDropzone
-      setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/svg+xml", ".svg"]}
-      dropText="Drop SVG file"
-    >
-      <SVGToolCore fileUploaderProps={fileUploaderProps} />
-    </FileDropzone>
+    <>
+      <FileDropzone
+        setCurrentFile={fileUploaderProps.handleFileUpload}
+        acceptedFileTypes={["image/svg+xml", ".svg"]}
+        dropText="Drop SVG file"
+      >
+        <SVGToolCore fileUploaderProps={fileUploaderProps} />
+      </FileDropzone>
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          // @ts-expect-error: Framer Motion types are not correct
+          className="absolute inset-0 left-[-10%] top-[50%] w-1/2 rounded-full bg-gradient-to-br from-purple-800 to-purple-600 opacity-50 blur-[250px]"
+          animate={{
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </div>
+    </>
   );
 }

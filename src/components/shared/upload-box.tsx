@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import React from "react";
 
 interface UploadBoxProps {
@@ -18,14 +19,16 @@ export function UploadBox({
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4">
       <div className="flex flex-col items-center gap-2">
-        <p className="text-center text-white">{title}</p>
+        <p className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-4xl font-bold text-transparent">
+          {title}
+        </p>
         {subtitle && (
           <p className="inline-block rounded-full border border-white/30 bg-white/5 px-2 py-0.5 text-center text-sm text-white/60">
             {subtitle}
           </p>
         )}
       </div>
-      <div className="flex w-72 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-white/30 bg-white/10 p-6 backdrop-blur-sm">
+      <div className="backdrop-blur- flex w-72 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-white/30 bg-gray-500/15 p-6">
         <svg
           className="h-8 w-8 text-gray-400"
           fill="none"
@@ -40,8 +43,12 @@ export function UploadBox({
           />
         </svg>
         <p className="text-sm text-gray-400">Drag and Drop</p>
-        <p className="text-sm text-gray-500">or</p>
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+        <p className="text-gray-400">or</p>
+        <motion.label
+          whileHover={{ scale: 1.1 }}
+          // @ts-expect-error: Framer Motion types are not correct
+          className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75"
+        >
           <span>{description}</span>
           <input
             type="file"
@@ -49,7 +56,7 @@ export function UploadBox({
             accept={accept}
             className="hidden"
           />
-        </label>
+        </motion.label>
       </div>
     </div>
   );

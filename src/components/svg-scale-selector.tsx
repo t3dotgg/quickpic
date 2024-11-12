@@ -45,7 +45,7 @@ export function SVGScaleSelector({
         >
           <div
             ref={highlightRef}
-            className="absolute top-1 h-[calc(100%-8px)] rounded-md bg-blue-600 transition-all duration-200"
+            className="absolute top-1 h-[calc(100%-8px)] rounded-md bg-purple-600 transition-all duration-200"
           />
           {[...options, "custom" as const].map((option) => (
             <button

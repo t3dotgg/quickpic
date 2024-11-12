@@ -70,7 +70,7 @@ export function BorderRadiusSelector({
         >
           <div
             ref={highlightRef}
-            className="absolute inset-y-1 rounded-md bg-blue-600 transition-all duration-200"
+            className="absolute inset-y-1 rounded-md bg-purple-600 transition-all duration-200"
           />
           {[...options, "custom" as const].map((option) => (
             <button
