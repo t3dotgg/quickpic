@@ -10,15 +10,17 @@ import {
   useFileUploader,
 } from "@/hooks/use-file-uploader";
 import { useEffect, useState } from "react";
+import { ChromePicker } from "react-color";
 
 function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
     props.fileUploaderProps;
 
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white"
+    "black" | "white" | "transparent" | "custom"
   >("squareTool_backgroundColor", "white");
 
+  const [customColor, setCustomColor] = useState<string>("#FF0000");
   const [squareImageContent, setSquareImageContent] = useState<string | null>(
     null,
   );
@@ -34,7 +36,8 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       if (!ctx) return;
 
       // Fill background
-      ctx.fillStyle = backgroundColor;
+      ctx.fillStyle =
+        backgroundColor === "custom" ? customColor : backgroundColor;
       ctx.fillRect(0, 0, size, size);
 
       // Load and center the image
@@ -47,7 +50,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       };
       img.src = imageContent;
     }
-  }, [imageContent, imageMetadata, backgroundColor]);
+  }, [imageContent, imageMetadata, backgroundColor, customColor]);
 
   const handleSaveImage = () => {
     if (squareImageContent && imageMetadata) {
@@ -108,13 +111,27 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 
       <OptionSelector
         title="Background Color"
-        options={["white", "black"]}
+        options={["white", "black", "transparent", "custom"]}
         selected={backgroundColor}
         onChange={setBackgroundColor}
         formatOption={(option) =>
           option.charAt(0).toUpperCase() + option.slice(1)
         }
       />
+
+      {backgroundColor === "custom" && (
+        <div className="flex gap-2">
+          <label className="inline-flex items-center">
+            <ChromePicker
+              color={customColor}
+              onChange={(color) => {
+                setCustomColor(color.hex);
+              }}
+              disableAlpha={true}
+            />
+          </label>
+        </div>
+      )}
 
       <div className="flex gap-3">
         <button
