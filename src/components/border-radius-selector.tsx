@@ -7,6 +7,7 @@ interface BorderRadiusSelectorProps {
   onChange: (value: number | "custom") => void;
   customValue?: number;
   onCustomValueChange?: (value: number) => void;
+  disabled?: boolean; // Added the optional 'disabled' prop
 }
 
 export function BorderRadiusSelector({
@@ -16,6 +17,7 @@ export function BorderRadiusSelector({
   onChange,
   customValue,
   onCustomValueChange,
+  disabled, // Destructure the 'disabled' prop
 }: BorderRadiusSelectorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLButtonElement>(null);
@@ -24,11 +26,11 @@ export function BorderRadiusSelector({
   useEffect(() => {
     if (selectedRef.current && highlightRef.current && containerRef.current) {
       const container = containerRef.current;
-      const selected = selectedRef.current;
+      const selectedButton = selectedRef.current;
       const highlight = highlightRef.current;
 
       const containerRect = container.getBoundingClientRect();
-      const selectedRect = selected.getBoundingClientRect();
+      const selectedRect = selectedButton.getBoundingClientRect();
 
       highlight.style.left = `${selectedRect.left - containerRect.left}px`;
       highlight.style.width = `${selectedRect.width}px`;
@@ -79,17 +81,18 @@ export function BorderRadiusSelector({
               onClick={() =>
                 onChange(typeof option === "number" ? option : "custom")
               }
+              disabled={disabled}
               className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 option === selected
                   ? "text-white"
                   : "text-white/80 hover:text-white"
-              }`}
+              } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
             >
-              {option === "custom" ? "Custom" : option}
+              {option === "custom" ? "Custom" : `${option}px`}
             </button>
           ))}
         </div>
-        {selected === "custom" && (
+        {selected === "custom" && !disabled && (
           <div className="flex items-center gap-2">
             <div className="relative flex items-center">
               <input
