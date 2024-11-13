@@ -1,4 +1,5 @@
 "use client";
+
 import { usePlausible } from "next-plausible";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -14,18 +15,19 @@ import { FileDropzone } from "@/components/shared/file-dropzone";
 type Radius = number;
 
 type BackgroundOption = "white" | "black" | "transparent";
+type ShapeOption = "rounded" | "circle";
 
 function useImageConverter(props: {
   canvas: HTMLCanvasElement | null;
   imageContent: string;
   radius: Radius;
-  isCircle: boolean;
+  shapeOption: ShapeOption;
   background: BackgroundOption;
   fileName?: string;
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const { width, height, offsetX, offsetY } = useMemo(() => {
-    if (props.isCircle) {
+    if (props.shapeOption === "circle") {
       const size = Math.min(
         props.imageMetadata.width,
         props.imageMetadata.height,
@@ -41,7 +43,7 @@ function useImageConverter(props: {
         offsetY: 0,
       };
     }
-  }, [props.imageMetadata, props.isCircle]);
+  }, [props.imageMetadata, props.shapeOption]);
 
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d");
@@ -67,7 +69,7 @@ function useImageConverter(props: {
       ctx.fillStyle = props.background;
       ctx.fillRect(0, 0, width, height);
 
-      if (props.isCircle) {
+      if (props.shapeOption === "circle") {
         ctx.save();
         ctx.beginPath();
         ctx.arc(width / 2, height / 2, width / 2, 0, 2 * Math.PI);
@@ -117,14 +119,14 @@ function useImageConverter(props: {
 interface ImageRendererProps {
   imageContent: string;
   radius: Radius;
-  isCircle: boolean;
+  shapeOption: ShapeOption;
   background: BackgroundOption;
 }
 
 const ImageRenderer = ({
   imageContent,
   radius,
-  isCircle,
+  shapeOption,
   background,
 }: ImageRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -133,7 +135,7 @@ const ImageRenderer = ({
     if (containerRef.current) {
       const imgElement = containerRef.current.querySelector("img");
       if (imgElement) {
-        if (isCircle) {
+        if (shapeOption === "circle") {
           imgElement.style.borderRadius = "50%";
           imgElement.style.objectFit = "cover";
           imgElement.style.width = "100%";
@@ -146,15 +148,15 @@ const ImageRenderer = ({
         }
       }
     }
-  }, [imageContent, radius, isCircle]);
+  }, [imageContent, radius, shapeOption]);
 
   return (
     <div
       ref={containerRef}
       className="relative"
       style={{
-        width: isCircle ? "320px" : "500px",
-        height: isCircle ? "320px" : "auto",
+        width: shapeOption === "circle" ? "280px" : "500px",
+        height: shapeOption === "circle" ? "280px" : "auto",
         backgroundColor: background !== "transparent" ? background : undefined,
       }}
     >
@@ -171,13 +173,13 @@ const ImageRenderer = ({
 function SaveAsPngButton({
   imageContent,
   radius,
-  isCircle,
+  shapeOption,
   background,
   imageMetadata,
 }: {
   imageContent: string;
   radius: Radius;
-  isCircle: boolean;
+  shapeOption: ShapeOption;
   background: BackgroundOption;
   imageMetadata: { width: number; height: number; name: string };
 }) {
@@ -186,7 +188,7 @@ function SaveAsPngButton({
     canvas: canvasRef,
     imageContent,
     radius,
-    isCircle,
+    shapeOption,
     background,
     imageMetadata,
   });
@@ -218,7 +220,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     "roundedTool_background",
     "transparent",
   );
-  const [isCircle, setIsCircle] = useState(false);
+  const [shapeOption, setShapeOption] = useState<ShapeOption>("rounded");
 
   const handleRadiusChange = (value: number | "custom") => {
     if (value === "custom") {
@@ -242,12 +244,12 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
-      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-4 p-4">
+      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-4">
         <ImageRenderer
           imageContent={imageContent}
           radius={radius}
-          isCircle={isCircle}
+          shapeOption={shapeOption}
           background={background}
         />
         <p className="text-lg font-medium text-white/80">
@@ -257,10 +259,10 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 
       <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
         <span className="text-sm text-white/60">
-          {isCircle ? "Cropped Size" : "Original Size"}
+          {shapeOption === "circle" ? "Cropped Size" : "Original Size"}
         </span>
         <span className="font-medium text-white">
-          {isCircle
+          {shapeOption === "circle"
             ? `${Math.min(imageMetadata.width, imageMetadata.height)} × ${Math.min(
                 imageMetadata.width,
                 imageMetadata.height,
@@ -269,28 +271,25 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         </span>
       </div>
 
-      <BorderRadiusSelector
-        title="Border Radius"
-        options={[2, 4, 8, 16, 32, 64]}
-        selected={isCustomRadius ? "custom" : radius}
-        onChange={handleRadiusChange}
-        customValue={radius}
-        onCustomValueChange={setRadius}
-        disabled={isCircle}
+      <OptionSelector
+        title="Pick Your Shape"
+        options={["Rounded Edges", "Circle"]}
+        selected={shapeOption === "circle" ? "Circle" : "Rounded Edges"}
+        onChange={(option) =>
+          setShapeOption(option === "Circle" ? "circle" : "rounded")
+        }
+        formatOption={(option) => option}
       />
-
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="circle-checkbox"
-          checked={isCircle}
-          onChange={(e) => setIsCircle(e.target.checked)}
-          className="form-checkbox h-5 w-5 text-green-600"
+      {shapeOption === "rounded" && (
+        <BorderRadiusSelector
+          title="Border Radius"
+          options={[2, 4, 8, 16, 32, 64]}
+          selected={isCustomRadius ? "custom" : radius}
+          onChange={handleRadiusChange}
+          customValue={radius}
+          onCustomValueChange={setRadius}
         />
-        <label htmlFor="circle-checkbox" className="text-white">
-          Make image a circle
-        </label>
-      </div>
+      )}
 
       <OptionSelector
         title="Background"
@@ -312,7 +311,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         <SaveAsPngButton
           imageContent={imageContent}
           radius={radius}
-          isCircle={isCircle}
+          shapeOption={shapeOption}
           background={background}
           imageMetadata={imageMetadata}
         />
