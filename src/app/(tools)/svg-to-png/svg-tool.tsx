@@ -148,7 +148,9 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   );
 
   // Get the actual numeric scale value
-  const effectiveScale = scale === "custom" ? customScale : scale;
+  const effectiveScale = scale === "custom" 
+    ? (customScale === 0 ? 1 : customScale) // Revert to 1 if custom scale is 0
+    : scale;
 
   if (!imageMetadata)
     return (
