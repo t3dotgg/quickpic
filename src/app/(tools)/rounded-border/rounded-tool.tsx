@@ -16,7 +16,6 @@ type Radius = number;
 type BackgroundOption = "white" | "black" | "transparent";
 
 function useImageConverter(props: {
-  canvas: HTMLCanvasElement | null;
   imageContent: string;
   radius: Radius;
   background: BackgroundOption;
@@ -31,18 +30,18 @@ function useImageConverter(props: {
   }, [props.imageMetadata]);
 
   const convertToPng = async () => {
-    const ctx = props.canvas?.getContext("2d");
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
-    const saveImage = () => {
-      if (props.canvas) {
-        const dataURL = props.canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = dataURL;
-        const imageFileName = props.imageMetadata.name ?? "image_converted";
-        link.download = `${imageFileName.replace(/\..+$/, "")}.png`;
-        link.click();
-      }
+    const saveImage = async () => {
+      const blob = await canvas.convertToBlob({ type: "image/png" });
+      const objectURL = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectURL;
+      const imageFileName = props.imageMetadata.name ?? "image_converted";
+      link.download = `${imageFileName.replace(/\..+$/, "")}.png`;
+      link.click();
     };
 
     const img = new Image();
@@ -63,7 +62,7 @@ function useImageConverter(props: {
       ctx.closePath();
       ctx.clip();
       ctx.drawImage(img, 0, 0, width, height);
-      saveImage();
+      void saveImage();
     };
 
     img.src = props.imageContent;
@@ -71,7 +70,6 @@ function useImageConverter(props: {
 
   return {
     convertToPng,
-    canvasProps: { width: width, height: height },
   };
 }
 
@@ -124,9 +122,7 @@ function SaveAsPngButton({
   background: BackgroundOption;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
-  const { convertToPng, canvasProps } = useImageConverter({
-    canvas: canvasRef,
+  const { convertToPng } = useImageConverter({
     imageContent,
     radius,
     background,
@@ -137,7 +133,6 @@ function SaveAsPngButton({
 
   return (
     <div>
-      <canvas ref={setCanvasRef} {...canvasProps} hidden />
       <button
         onClick={() => {
           plausible("convert-image-to-png");

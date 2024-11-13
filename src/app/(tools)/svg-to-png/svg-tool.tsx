@@ -1,6 +1,6 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { UploadBox } from "@/components/shared/upload-box";
@@ -25,7 +25,6 @@ function scaleSvg(svgContent: string, scale: number) {
 }
 
 function useSvgConverter(props: {
-  canvas: HTMLCanvasElement | null;
   svgContent: string;
   scale: number;
   fileName?: string;
@@ -42,28 +41,28 @@ function useSvgConverter(props: {
   }, [props.svgContent, props.scale, props.imageMetadata]);
 
   const convertToPng = async () => {
-    const ctx = props.canvas?.getContext("2d");
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
     // Trigger a "save image" of the resulting canvas content
-    const saveImage = () => {
-      if (props.canvas) {
-        const dataURL = props.canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = dataURL;
-        const svgFileName = props.imageMetadata.name ?? "svg_converted";
+    const saveImage = async () => {
+      const blob = await canvas.convertToBlob({ type: "image/png" });
+      const objectURL = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectURL;
+      const svgFileName = props.imageMetadata.name ?? "svg_converted";
 
-        // Remove the .svg extension
-        link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
-        link.click();
-      }
+      // Remove the .svg extension
+      link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
+      link.click();
     };
 
     const img = new Image();
     // Call saveImage after the image has been drawn
     img.onload = () => {
       ctx.drawImage(img, 0, 0);
-      saveImage();
+      void saveImage();
     };
 
     img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`;
@@ -71,7 +70,6 @@ function useSvgConverter(props: {
 
   return {
     convertToPng,
-    canvasProps: { width: width, height: height },
   };
 }
 
@@ -105,9 +103,7 @@ function SaveAsPngButton({
   scale: number;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
-  const { convertToPng, canvasProps } = useSvgConverter({
-    canvas: canvasRef,
+  const { convertToPng } = useSvgConverter({
     svgContent,
     scale,
     imageMetadata,
@@ -117,7 +113,6 @@ function SaveAsPngButton({
 
   return (
     <div>
-      <canvas ref={setCanvasRef} {...canvasProps} hidden />
       <button
         onClick={() => {
           plausible("convert-svg-to-png");
