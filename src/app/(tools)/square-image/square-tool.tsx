@@ -16,7 +16,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     props.fileUploaderProps;
 
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white"
+    "black" | "white" | "extend"
   >("squareTool_backgroundColor", "white");
 
   const [squareImageContent, setSquareImageContent] = useState<string | null>(
@@ -27,15 +27,17 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     if (imageContent && imageMetadata) {
       const canvas = document.createElement("canvas");
       const size = Math.max(imageMetadata.width, imageMetadata.height);
+      const extend = backgroundColor === "extend";
       canvas.width = size;
       canvas.height = size;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Fill background
-      ctx.fillStyle = backgroundColor;
-      ctx.fillRect(0, 0, size, size);
+      if (!extend) { // Fill background
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, size, size);
+      }
 
       // Load and center the image
       const img = new Image();
@@ -43,6 +45,17 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         const x = (size - imageMetadata.width) / 2;
         const y = (size - imageMetadata.height) / 2;
         ctx.drawImage(img, x, y);
+
+        if (extend) { // Extend background
+          if (img.width > img.height) {
+            ctx.drawImage(img, 0, 0, img.width, 1, 0, 0, canvas.width, y);
+            ctx.drawImage(img, 0, img.height - 1, img.width, 1, 0, img.height + y, img.width, size - img.height - y);
+          } else {
+            ctx.drawImage(img, 0, 0, 1, img.height, 0, 0, x, img.height);
+            ctx.drawImage(img, img.width - 1, 0, 1, img.height, x + img.width, 0, size - img.width - x, img.height);
+          }
+        }
+
         setSquareImageContent(canvas.toDataURL("image/png"));
       };
       img.src = imageContent;
@@ -108,7 +121,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 
       <OptionSelector
         title="Background Color"
-        options={["white", "black"]}
+        options={["white", "black", "extend"]}
         selected={backgroundColor}
         onChange={setBackgroundColor}
         formatOption={(option) =>
