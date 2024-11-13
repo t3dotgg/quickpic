@@ -1,19 +1,22 @@
 "use client";
-import { usePlausible } from "next-plausible";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocalStorage } from "@/hooks/use-local-storage";
-import { UploadBox } from "@/components/shared/upload-box";
-import { OptionSelector } from "@/components/shared/option-selector";
+
 import { BorderRadiusSelector } from "@/components/border-radius-selector";
+import { FileDropzone } from "@/components/shared/file-dropzone";
+import { OptionSelector } from "@/components/shared/option-selector";
+import { UploadBox } from "@/components/shared/upload-box";
 import {
   useFileUploader,
   type FileUploaderResult,
 } from "@/hooks/use-file-uploader";
-import { FileDropzone } from "@/components/shared/file-dropzone";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { usePlausible } from "next-plausible";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Radius = number;
 
 type BackgroundOption = "white" | "black" | "transparent";
+
+const acceptedFileTypes = ["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"];
 
 function useImageConverter(props: {
   canvas: HTMLCanvasElement | null;
@@ -176,7 +179,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         title="Add rounded borders to your images. Quick and easy."
         subtitle="Allows pasting images from clipboard"
         description="Upload Image"
-        accept="image/*"
+        accept={acceptedFileTypes.join(", ")}
         onChange={handleFileUploadEvent}
       />
     );
@@ -240,12 +243,12 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 }
 
 export function RoundedTool() {
-  const fileUploaderProps = useFileUploader();
+  const fileUploaderProps = useFileUploader(acceptedFileTypes);
 
   return (
     <FileDropzone
       setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"]}
+      acceptedFileTypes={acceptedFileTypes}
       dropText="Drop image file"
     >
       <RoundedToolCore fileUploaderProps={fileUploaderProps} />

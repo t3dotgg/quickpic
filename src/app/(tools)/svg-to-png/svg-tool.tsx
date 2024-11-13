@@ -1,12 +1,14 @@
 "use client";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import { usePlausible } from "next-plausible";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { UploadBox } from "@/components/shared/upload-box";
 import { SVGScaleSelector } from "@/components/svg-scale-selector";
 
 export type Scale = "custom" | number;
+
+const acceptedFileTypes = ["image/svg+xml", ".svg"];
 
 function scaleSvg(svgContent: string, scale: number) {
   const parser = new DOMParser();
@@ -131,11 +133,11 @@ function SaveAsPngButton({
   );
 }
 
+import { FileDropzone } from "@/components/shared/file-dropzone";
 import {
   type FileUploaderResult,
   useFileUploader,
 } from "@/hooks/use-file-uploader";
-import { FileDropzone } from "@/components/shared/file-dropzone";
 
 function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { rawContent, imageMetadata, handleFileUploadEvent, cancel } =
@@ -155,7 +157,7 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       <UploadBox
         title="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
         description="Upload SVG"
-        accept=".svg"
+        accept={acceptedFileTypes.join(", ")}
         onChange={handleFileUploadEvent}
       />
     );
@@ -217,11 +219,11 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 }
 
 export function SVGTool() {
-  const fileUploaderProps = useFileUploader();
+  const fileUploaderProps = useFileUploader(acceptedFileTypes);
   return (
     <FileDropzone
       setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/svg+xml", ".svg"]}
+      acceptedFileTypes={acceptedFileTypes}
       dropText="Drop SVG file"
     >
       <SVGToolCore fileUploaderProps={fileUploaderProps} />
