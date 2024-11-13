@@ -161,57 +161,58 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     );
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
+    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-12 p-6 lg:flex-nowrap">
       {/* Preview Section */}
-      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
+      <div className="flex w-full max-w-fit flex-col items-center gap-4 rounded-xl p-6">
         <SVGRenderer svgContent={rawContent} />
         <p className="text-lg font-medium text-white/80">
           {imageMetadata.name}
         </p>
       </div>
+      <section className="flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
+        {/* Size Information */}
+        <div className="flex gap-6 text-base">
+          <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
+            <span className="text-sm text-white/60">Original</span>
+            <span className="font-medium text-white">
+              {imageMetadata.width} × {imageMetadata.height}
+            </span>
+          </div>
 
-      {/* Size Information */}
-      <div className="flex gap-6 text-base">
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Original</span>
-          <span className="font-medium text-white">
-            {imageMetadata.width} × {imageMetadata.height}
-          </span>
+          <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
+            <span className="text-sm text-white/60">Scaled</span>
+            <span className="font-medium text-white">
+              {imageMetadata.width * effectiveScale} ×{" "}
+              {imageMetadata.height * effectiveScale}
+            </span>
+          </div>
         </div>
 
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Scaled</span>
-          <span className="font-medium text-white">
-            {imageMetadata.width * effectiveScale} ×{" "}
-            {imageMetadata.height * effectiveScale}
-          </span>
-        </div>
-      </div>
-
-      {/* Scale Controls */}
-      <SVGScaleSelector
-        title="Scale Factor"
-        options={[1, 2, 4, 8, 16, 32, 64]}
-        selected={scale}
-        onChange={setScale}
-        customValue={customScale}
-        onCustomValueChange={setCustomScale}
-      />
-
-      {/* Action Buttons */}
-      <div className="flex gap-3">
-        <button
-          onClick={cancel}
-          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
-        >
-          Cancel
-        </button>
-        <SaveAsPngButton
-          svgContent={rawContent}
-          scale={effectiveScale}
-          imageMetadata={imageMetadata}
+        {/* Scale Controls */}
+        <SVGScaleSelector
+          title="Scale Factor"
+          options={[1, 2, 4, 8, 16, 32, 64]}
+          selected={scale}
+          onChange={setScale}
+          customValue={customScale}
+          onCustomValueChange={setCustomScale}
         />
-      </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={cancel}
+            className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
+          >
+            Cancel
+          </button>
+          <SaveAsPngButton
+            svgContent={rawContent}
+            scale={effectiveScale}
+            imageMetadata={imageMetadata}
+          />
+        </div>
+      </section>
     </div>
   );
 }
