@@ -26,6 +26,9 @@ export default function Home() {
         <Link href="/rounded-border" className="text-blue-500 hover:underline">
           Corner Rounder
         </Link>
+        <Link href="/size-compressor" className="text-blue-500 hover:underline">
+          Image size compressor
+        </Link>
       </main>
       <footer className="mt-8 text-center text-sm text-gray-500">
         <a
