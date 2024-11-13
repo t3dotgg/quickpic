@@ -240,12 +240,20 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 }
 
 export function RoundedTool() {
-  const fileUploaderProps = useFileUploader();
+  const acceptedFileTypes = [
+    "image/*",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".svg",
+  ];
+  const fileUploaderProps = useFileUploader(acceptedFileTypes);
 
   return (
     <FileDropzone
       setCurrentFile={fileUploaderProps.handleFileUpload}
-      acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"]}
+      acceptedFileTypes={acceptedFileTypes}
       dropText="Drop image file"
     >
       <RoundedToolCore fileUploaderProps={fileUploaderProps} />

@@ -66,6 +66,7 @@ export type FileUploaderResult = {
 
 /**
  * A hook for handling file uploads, particularly images and SVGs
+ * @param acceptedFileTypes {string[]} an array of accepted file types.
  * @returns {FileUploaderResult} An object containing:
  * - imageContent: Use this as the src for an img tag
  * - rawContent: The raw file content as a string (useful for SVG tags)
@@ -73,7 +74,9 @@ export type FileUploaderResult = {
  * - handleFileUpload: Function to handle file input change events
  * - cancel: Function to reset the upload state
  */
-export const useFileUploader = (): FileUploaderResult => {
+export const useFileUploader = (
+  acceptedFileTypes: string[],
+): FileUploaderResult => {
   const [imageContent, setImageContent] = useState<string>("");
   const [rawContent, setRawContent] = useState<string>("");
   const [imageMetadata, setImageMetadata] = useState<{
@@ -125,7 +128,7 @@ export const useFileUploader = (): FileUploaderResult => {
 
   useClipboardPaste({
     onPaste: handleFilePaste,
-    acceptedFileTypes: ["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"],
+    acceptedFileTypes,
   });
 
   const cancel = () => {
