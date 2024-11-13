@@ -161,9 +161,9 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     );
 
   return (
-    <div className="mx-auto flex flex-wrap items-center justify-center gap-6 p-6 lg:flex-nowrap">
+    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-12 p-6 lg:flex-nowrap">
       {/* Preview Section */}
-      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
+      <div className="flex w-full max-w-fit flex-col items-center gap-4 rounded-xl p-6">
         <SVGRenderer svgContent={rawContent} />
         <p className="text-lg font-medium text-white/80">
           {imageMetadata.name}
