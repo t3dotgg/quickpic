@@ -7,7 +7,7 @@ export default function Home() {
         <div>
           Hi. I&apos;m{" "}
           <a
-            href="https://twitter.com/t3dotgg"
+            href="https://x.com/theo"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"
