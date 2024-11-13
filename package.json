@@ -15,9 +15,11 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.44",
     "babel-plugin-react-compiler": "0.0.0-experimental-734b737-20241003",
     "next": "15.0.0-rc.1",
-    "next-plausible": "^3.12.2",
+    "next-plausible": "^3.12.4",
+    "png-to-ico": "^2.1.8",
     "react": "19.0.0-rc-cd22717c-20241013",
     "react-dom": "19.0.0-rc-cd22717c-20241013"
   },
@@ -31,13 +33,23 @@
     "concurrently": "^9.1.0",
     "eslint": "^8",
     "eslint-config-next": "15.0.0-rc.1",
+    "postcss": "^8",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
-    "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   },
   "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "react",
+        "react-dom",
+        "next",
+        "next@^11.1.0 || ^12.0.0 || ^13.0.0 || ^14.0.0",
+        "react@^16.8.0 || ^17.0.0 || ^18.0.0",
+        "react-dom@^16.8.0 || ^17.0.0 || ^18.0.0"
+      ]
+    },
     "overrides": {
       "@types/react": "npm:types-react@19.0.0-rc.1",
       "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1"
