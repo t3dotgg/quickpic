@@ -153,7 +153,7 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   if (!imageMetadata)
     return (
       <UploadBox
-        title="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
+        title="Make SVGs into PNGs for free. (You can scale size too.)"
         description="Upload SVG"
         accept=".svg"
         onChange={handleFileUploadEvent}

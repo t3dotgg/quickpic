@@ -2,7 +2,7 @@ import { SVGTool } from "./svg-tool";
 
 export const metadata = {
   title: "SVG to PNG converter - QuickPic",
-  description: "Convert SVGs to PNGs. Also makes them bigger.",
+  description: "Make SVGs into PNGs for free. (You can scale size too.)",
 };
 
 export default function SVGToolPage() {
