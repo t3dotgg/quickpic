@@ -4,7 +4,8 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col justify-between p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
       <main className="flex flex-grow flex-col items-center justify-center">
-        <div>
+        <div className="absolute z-10 h-64 w-64 animate-shift rounded-full border-4 border-purple-600 bg-transparent shadow-2xl sm:h-72 sm:w-72 lg:h-96 lg:w-96" />
+        <div className="z-20">
           Hi. I&apos;m{" "}
           <a
             href="https://twitter.com/t3dotgg"
