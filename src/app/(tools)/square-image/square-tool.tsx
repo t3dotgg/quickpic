@@ -11,16 +11,78 @@ import {
 } from "@/hooks/use-file-uploader";
 import { useEffect, useState } from "react";
 
+const calculateAccentColor = (imgSrc: string): Promise<string> => {
+  const accentColorSet: Map<string, string> = new Map(); // caching the accent color
+  return new Promise((resolve) => {
+    if (accentColorSet.has(imgSrc)) {
+      const color = accentColorSet.get(imgSrc);
+      if (color) {
+        resolve(color);
+        return;
+      }
+    }
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        ).data;
+        const colorMap = new Map<string, number>();
+
+        // Sample every 4th pixel to improve performance
+        for (let i = 0; i < imageData.length; i += 16) {
+          const r = imageData[i];
+          const g = imageData[i + 1];
+          const b = imageData[i + 2];
+
+          // Skip white and near-white colors
+          if (r > 240 && g > 240 && b > 240) continue;
+
+          const color = `rgb(${r},${g},${b})`;
+          colorMap.set(color, (colorMap.get(color) || 0) + 1);
+        }
+
+        let maxCount = 0;
+        let dominantColor = "white"; // Default to white if no dominant color found
+
+        colorMap.forEach((count, color) => {
+          if (count > maxCount) {
+            maxCount = count;
+            dominantColor = color;
+          }
+        });
+        accentColorSet.set(imgSrc, dominantColor);
+        setTimeout(()=>{
+          accent
+        },60*1000)
+        resolve(dominantColor);
+      } else {
+        resolve("white");
+      }
+    };
+    img.src = imgSrc;
+  });
+};
+
 function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
     props.fileUploaderProps;
 
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white"
+    "black" | "white" | "accent"
   >("squareTool_backgroundColor", "white");
 
   const [squareImageContent, setSquareImageContent] = useState<string | null>(
-    null,
+    null
   );
 
   useEffect(() => {
@@ -33,19 +95,29 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Fill background
-      ctx.fillStyle = backgroundColor;
-      ctx.fillRect(0, 0, size, size);
+      // Fill background based on selected color
+      if (backgroundColor === "accent") {
+        calculateAccentColor(imageContent).then((dominantColor) => {
+          ctx.fillStyle = dominantColor;
+          ctx.fillRect(0, 0, size, size);
+          drawImageOnCanvas(ctx);
+        });
+      } else {
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, size, size);
+        drawImageOnCanvas(ctx);
+      }
 
-      // Load and center the image
-      const img = new Image();
-      img.onload = () => {
-        const x = (size - imageMetadata.width) / 2;
-        const y = (size - imageMetadata.height) / 2;
-        ctx.drawImage(img, x, y);
-        setSquareImageContent(canvas.toDataURL("image/png"));
-      };
-      img.src = imageContent;
+      function drawImageOnCanvas(ctx: CanvasRenderingContext2D) {
+        const img = new Image();
+        img.onload = () => {
+          const x = (size - imageMetadata.width) / 2;
+          const y = (size - imageMetadata.height) / 2;
+          ctx.drawImage(img, x, y);
+          setSquareImageContent(canvas.toDataURL("image/png"));
+        };
+        img.src = imageContent;
+      }
     }
   }, [imageContent, imageMetadata, backgroundColor]);
 
@@ -108,7 +180,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 
       <OptionSelector
         title="Background Color"
-        options={["white", "black"]}
+        options={["white", "black", "accent"]}
         selected={backgroundColor}
         onChange={setBackgroundColor}
         formatOption={(option) =>
