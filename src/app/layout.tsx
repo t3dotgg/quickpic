@@ -33,7 +33,7 @@ export default function RootLayout({
         <PlausibleProvider domain="quickpic.t3.gg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} dark antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} dark overflow-hidden antialiased`}
       >
         {children}
       </body>
