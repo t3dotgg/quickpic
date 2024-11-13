@@ -17,7 +17,7 @@ export default function Home() {
           </a>
           . I built these tools because I was annoyed they did not exist.
         </div>
-        <div className="mt-4"></div>
+        <div className="z-20 mt-4"></div>
         <Link href="/svg-to-png" className="text-blue-500 hover:underline">
           SVG to PNG converter
         </Link>

@@ -33,10 +33,11 @@ export default function ToolsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col justify-between p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
-      <div className="absolute inset-0 left-[-10%] top-[50%] z-50 h-[300px] w-[300px] animate-scalePulse rounded-full bg-gradient-to-br from-purple-800 to-purple-600 opacity-50 blur-[250px] md:h-[500px] md:w-[500px] lg:h-[700px] lg:w-[700px]"></div>
+    <div className="flex min-h-screen flex-col justify-between overflow-hidden p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
       <BackButton />
-      <main className="flex flex-grow flex-col items-center justify-center">
+      <main className="flex flex-grow flex-col items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 left-[-10%] top-[50%] z-50 h-[300px] w-[300px] animate-scalePulse rounded-full bg-gradient-to-br from-purple-800 to-purple-600 opacity-50 blur-[250px] md:h-[500px] md:w-[500px] lg:h-[700px] lg:w-[700px]"></div>
+
         {children}
       </main>
       <footer className="mt-8 text-center text-sm text-gray-500">
