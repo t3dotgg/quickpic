@@ -133,10 +133,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         >
           Save Image
         </button>
-        <ReuploadBox
-          accept="image/*"
-          onChange={handleFileUploadEvent}
-        />
+        <ReuploadBox accept="image/*" onChange={handleFileUploadEvent} />
       </div>
     </div>
   );
