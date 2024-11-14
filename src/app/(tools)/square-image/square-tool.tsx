@@ -10,6 +10,7 @@ import {
   useFileUploader,
 } from "@/hooks/use-file-uploader";
 import { useEffect, useState } from "react";
+import ReuploadBox from "@/components/shared/reupload-box";
 
 function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
@@ -132,6 +133,10 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         >
           Save Image
         </button>
+        <ReuploadBox
+          accept="image/*"
+          onChange={handleFileUploadEvent}
+        />
       </div>
     </div>
   );
