@@ -2,16 +2,11 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import PlausibleProvider from "next-plausible";
+import { Navbar } from "@/components/navbar";
+import Footer from "@/components/footer";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const kronaOne = localFont({
+  src: "./fonts/KronaOne-Regular.ttf",
 });
 
 export const metadata: Metadata = {
@@ -32,10 +27,10 @@ export default function RootLayout({
       <head>
         <PlausibleProvider domain="quickpic.t3.gg" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} dark antialiased`}
-      >
+      <body className={`${kronaOne.className} dark antialiased`}>
+        <Navbar />
         {children}
+        <Footer />
       </body>
     </html>
   );
