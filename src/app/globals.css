@@ -34,11 +34,19 @@
 
 @layer utilities {
   .heading {
-    @apply text-2xl font-bold;
+    @apply text-2xl font-bold leading-[28px] text-center;
+  }
+
+  .paragraph {
+    @apply text-[10px] leading-[15px] tracking-[0.5px] text-center;
   }
 
   .flex-center {
     @apply flex items-center justify-center;
+  }
+
+  .label-button {
+    @apply flex items-center gap-[10px] px-4 py-3 box-border text-xs tracking-[0.5px] rounded-lg bg-gradient-to-t from-blue-ribbon-500 to-blue-ribbon-600 hover:from-blue-ribbon-600 hover:to-blue-ribbon-700 border-t-2 hover:border-t-blue-ribbon-500 cursor-pointer;
   }
 }
 

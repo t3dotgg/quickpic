@@ -14,14 +14,14 @@ export default function Home() {
           href="https://twitter.com/t3dotgg"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-ribbon-400 hover:underline"
+          className="text-blue-ribbon-400 underline-offset-4 hover:underline"
         >
           Theo
         </Link>
         . I built these tools because I was annoyed they did not exist.
       </Paragraph>
 
-      <div className="flex w-[260px] flex-col gap-2">
+      <div className="flex w-[272px] flex-col gap-2">
         {heroLinks.map((link) => (
           <Link key={link.label} href={link.href}>
             <Button className="w-full">

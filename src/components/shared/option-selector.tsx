@@ -37,11 +37,11 @@ export function OptionSelector<T extends string | number>({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <span className="text-sm text-white/60">{title}</span>
+      <span className="paragraph opacity-80">{title}</span>
       <div className="flex flex-col items-center gap-2">
         <div
           ref={containerRef}
-          className="relative inline-flex rounded-lg bg-white/5 p-1"
+          className="relative inline-flex rounded-lg bg-white/10 p-1 backdrop-blur-sm"
         >
           <div
             ref={highlightRef}
@@ -52,7 +52,7 @@ export function OptionSelector<T extends string | number>({
               key={option}
               ref={option === selected ? selectedRef : null}
               onClick={() => onChange(option)}
-              className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`relative px-3 py-1.5 text-xs transition-colors ${
                 option === selected
                   ? "text-white"
                   : "text-white/80 hover:text-white"

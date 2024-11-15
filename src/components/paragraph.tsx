@@ -6,7 +6,12 @@ export default function Paragraph({
   children,
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-[10px] leading-[15px] tracking-[0.5px]", className)}>
+    <p
+      className={cn(
+        "text-center text-[10px] leading-[15px] tracking-[0.5px]",
+        className,
+      )}
+    >
       {children}
     </p>
   );
