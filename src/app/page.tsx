@@ -1,42 +1,36 @@
+import Heading from "@/components/heading";
+import Paragraph from "@/components/paragraph";
+import { Button } from "@/components/ui/button";
+import { heroLinks } from "@/constant";
 import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col justify-between p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
-      <main className="flex flex-grow flex-col items-center justify-center">
-        <div>
-          Hi. I&apos;m{" "}
-          <a
-            href="https://twitter.com/t3dotgg"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Theo
-          </a>
-          . I built these tools because I was annoyed they did not exist.
-        </div>
-        <div className="mt-4"></div>
-        <Link href="/svg-to-png" className="text-blue-500 hover:underline">
-          SVG to PNG converter
-        </Link>
-        <Link href="/square-image" className="text-blue-500 hover:underline">
-          Square image generator
-        </Link>
-        <Link href="/rounded-border" className="text-blue-500 hover:underline">
-          Corner Rounder
-        </Link>
-      </main>
-      <footer className="mt-8 text-center text-sm text-gray-500">
-        <a
-          href="https://github.com/t3dotgg/quickpic"
+    <main className="flex-center relative flex-col gap-4 bg-[url('/background.svg')]">
+      <Heading>QuickPic</Heading>
+      <Paragraph className="w-[282px] text-center">
+        Hi. I&apos;m{" "}
+        <Link
+          href="https://twitter.com/t3dotgg"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:underline"
+          className="text-blue-ribbon-400 underline-offset-4 hover:underline"
         >
-          View on GitHub
-        </a>
-      </footer>
-    </div>
+          Theo
+        </Link>
+        . I built these tools because I was annoyed they did not exist.
+      </Paragraph>
+
+      <div className="flex w-[272px] flex-col gap-2">
+        {heroLinks.map((link) => (
+          <Link key={link.label} href={link.href}>
+            <Button className="w-full">
+              {link.image}
+              <span>{link.label}</span>
+            </Button>
+          </Link>
+        ))}
+      </div>
+    </main>
   );
 }
