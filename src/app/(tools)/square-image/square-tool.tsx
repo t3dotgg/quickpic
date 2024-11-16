@@ -5,6 +5,8 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
 import { FileDropzone } from "@/components/shared/file-dropzone";
+import { HexColorPicker } from "react-colorful";
+
 import {
   type FileUploaderResult,
   useFileUploader,
@@ -16,8 +18,9 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     props.fileUploaderProps;
 
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white"
+    "black" | "white" | "custom"
   >("squareTool_backgroundColor", "white");
+  const [customColor, setCustomColor] = useState("#FFF");
 
   const [squareImageContent, setSquareImageContent] = useState<string | null>(
     null,
@@ -34,9 +37,9 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       if (!ctx) return;
 
       // Fill background
-      ctx.fillStyle = backgroundColor;
+      ctx.fillStyle =
+        backgroundColor === "custom" ? customColor : backgroundColor;
       ctx.fillRect(0, 0, size, size);
-
       // Load and center the image
       const img = new Image();
       img.onload = () => {
@@ -47,7 +50,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       };
       img.src = imageContent;
     }
-  }, [imageContent, imageMetadata, backgroundColor]);
+  }, [imageContent, imageMetadata, backgroundColor, customColor]);
 
   const handleSaveImage = () => {
     if (squareImageContent && imageMetadata) {
@@ -105,10 +108,13 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
           </span>
         </div>
       </div>
+      {backgroundColor === "custom" && (
+        <HexColorPicker color={customColor} onChange={setCustomColor} />
+      )}
 
       <OptionSelector
         title="Background Color"
-        options={["white", "black"]}
+        options={["white", "black", "custom"]}
         selected={backgroundColor}
         onChange={setBackgroundColor}
         formatOption={(option) =>
