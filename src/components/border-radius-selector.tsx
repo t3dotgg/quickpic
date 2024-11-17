@@ -99,7 +99,7 @@ export function BorderRadiusSelector({
                 value={customValue}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                className="w-24 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-white"
+                className="mr-5 w-24 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-white"
                 placeholder="Enter radius"
               />
               <span className="absolute right-3 text-sm text-white/60">px</span>
