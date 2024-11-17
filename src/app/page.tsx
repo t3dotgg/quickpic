@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="flex-center relative flex-col gap-4 bg-[url('/background.svg')]">
+    <main className="flex-center relative flex-col gap-4">
       <Heading>QuickPic</Heading>
       <Paragraph className="w-[282px] text-center">
         Hi. I&apos;m{" "}
