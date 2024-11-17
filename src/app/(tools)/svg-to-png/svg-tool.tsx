@@ -118,15 +118,14 @@ function SaveAsPngButton({
   return (
     <div>
       <canvas ref={setCanvasRef} {...canvasProps} hidden />
-      <button
+      <Button
         onClick={() => {
           plausible("convert-svg-to-png");
           void convertToPng();
         }}
-        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
       >
         Save as PNG
-      </button>
+      </Button>
     </div>
   );
 }
@@ -136,6 +135,8 @@ import {
   useFileUploader,
 } from "@/hooks/use-file-uploader";
 import { FileDropzone } from "@/components/shared/file-dropzone";
+import Paragraph from "@/components/paragraph";
+import { Button } from "@/components/ui/button";
 
 function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { rawContent, imageMetadata, handleFileUploadEvent, cancel } =
@@ -153,7 +154,8 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   if (!imageMetadata)
     return (
       <UploadBox
-        title="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
+        title="SVG to PNG Converter"
+        subtitle="Make SVGs into PNGs. Also makes them bigger. (100% free btw.)"
         description="Upload SVG"
         accept=".svg"
         onChange={handleFileUploadEvent}
@@ -161,26 +163,24 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     );
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 px-6 py-10">
       {/* Preview Section */}
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         <SVGRenderer svgContent={rawContent} />
-        <p className="text-lg font-medium text-white/80">
-          {imageMetadata.name}
-        </p>
+        <Paragraph className="text-xs">{imageMetadata.name}</Paragraph>
       </div>
 
       {/* Size Information */}
-      <div className="flex gap-6 text-base">
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Original</span>
+      <div className="flex gap-6 text-xs">
+        <div className="flex flex-col items-center gap-[6px] rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
+          <span className="paragraph opacity-80">Original</span>
           <span className="font-medium text-white">
             {imageMetadata.width} × {imageMetadata.height}
           </span>
         </div>
 
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Scaled</span>
+        <div className="flex flex-col items-center gap-[6px] rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
+          <span className="paragraph opacity-80">Scaled</span>
           <span className="font-medium text-white">
             {imageMetadata.width * effectiveScale} ×{" "}
             {imageMetadata.height * effectiveScale}
@@ -200,12 +200,12 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 
       {/* Action Buttons */}
       <div className="flex gap-3">
-        <button
+        <Button
           onClick={cancel}
-          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
+          className="border-t-2 border-red-400 bg-gradient-to-t from-red-500 to-red-600 hover:border-t-red-500 hover:from-red-600 hover:to-red-700"
         >
           Cancel
-        </button>
+        </Button>
         <SaveAsPngButton
           svgContent={rawContent}
           scale={effectiveScale}

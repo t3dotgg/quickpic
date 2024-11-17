@@ -10,6 +10,8 @@ import {
   useFileUploader,
 } from "@/hooks/use-file-uploader";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import Paragraph from "@/components/paragraph";
 
 function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
@@ -69,8 +71,9 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   if (!imageMetadata) {
     return (
       <UploadBox
-        title="Create square images with custom backgrounds. Fast and free."
-        subtitle="Allows pasting images from clipboard"
+        title="Square Image Creator"
+        subtitle={`Create square images with custom backgrounds. Fast and free.
+          Allows pasting images from clipboard`}
         description="Upload Image"
         accept="image/*"
         onChange={handleFileUploadEvent}
@@ -79,26 +82,24 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 px-6 py-10">
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         {squareImageContent && (
           <img src={squareImageContent} alt="Preview" className="mb-4" />
         )}
-        <p className="text-lg font-medium text-white/80">
-          {imageMetadata.name}
-        </p>
+        <Paragraph className="text-xs">{imageMetadata.name}</Paragraph>
       </div>
 
-      <div className="flex gap-6 text-base">
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Original</span>
+      <div className="flex gap-6 text-xs">
+        <div className="flex flex-col items-center gap-[6px] rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
+          <span className="paragraph opacity-80">Original</span>
           <span className="font-medium text-white">
             {imageMetadata.width} × {imageMetadata.height}
           </span>
         </div>
 
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Square Size</span>
+        <div className="flex flex-col items-center gap-[6px] rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
+          <span className="paragraph opacity-80">Square Size</span>
           <span className="font-medium text-white">
             {Math.max(imageMetadata.width, imageMetadata.height)} ×{" "}
             {Math.max(imageMetadata.width, imageMetadata.height)}
@@ -117,21 +118,20 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       />
 
       <div className="flex gap-3">
-        <button
+        <Button
           onClick={cancel}
-          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
+          className="border-t-2 border-red-400 bg-gradient-to-t from-red-500 to-red-600 hover:border-t-red-500 hover:from-red-600 hover:to-red-700"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             plausible("create-square-image");
             handleSaveImage();
           }}
-          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
         >
           Save Image
-        </button>
+        </Button>
       </div>
     </div>
   );

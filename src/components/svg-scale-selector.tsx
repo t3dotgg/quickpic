@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from "react";
+import Paragraph from "./paragraph";
 
 interface SVGScaleSelectorProps {
   title: string;
@@ -37,15 +38,15 @@ export function SVGScaleSelector({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <span className="text-sm text-white/60">{title}</span>
+      <Paragraph className="opacity-80">{title}</Paragraph>
       <div className="flex flex-col items-center gap-2">
         <div
           ref={containerRef}
-          className="relative inline-flex rounded-lg bg-white/5 p-1"
+          className="relative inline-flex rounded-lg bg-white/10 p-1 backdrop-blur-sm"
         >
           <div
             ref={highlightRef}
-            className="absolute top-1 h-[calc(100%-8px)] rounded-md bg-blue-600 transition-all duration-200"
+            className="absolute top-1 h-[calc(100%-8px)] rounded-md bg-blue-ribbon-600 transition-all duration-200"
           />
           {[...options, "custom" as const].map((option) => (
             <button
@@ -54,7 +55,7 @@ export function SVGScaleSelector({
               onClick={() =>
                 onChange(typeof option === "number" ? option : "custom")
               }
-              className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`relative rounded-md px-3 py-1.5 text-[10px] font-medium transition-colors ${
                 option === selected
                   ? "text-white"
                   : "text-white/80 hover:text-white"
@@ -94,7 +95,7 @@ export function SVGScaleSelector({
               );
               onCustomValueChange?.(clampedValue);
             }}
-            className="w-24 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-white"
+            className="w-24 rounded-lg bg-white/5 px-3 py-1.5 text-[10px] text-white"
             placeholder="Enter scale"
           />
         )}
