@@ -5,8 +5,11 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { UploadBox } from "@/components/shared/upload-box";
 import { SVGScaleSelector } from "@/components/svg-scale-selector";
+import { OptionSelector } from "@/components/option-selector";
 
 export type Scale = "custom" | number;
+
+type ResolutionMode = "scale" | "dimensions";
 
 function scaleSvg(svgContent: string, scale: number) {
   const parser = new DOMParser();
@@ -141,14 +144,43 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   const { rawContent, imageMetadata, handleFileUploadEvent, cancel } =
     props.fileUploaderProps;
 
+  const [resolutionMode, setResolutionMode] = useLocalStorage<ResolutionMode>(
+    "svgTool_resolutionMode",
+    "scale"
+  );
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
   const [customScale, setCustomScale] = useLocalStorage<number>(
     "svgTool_customScale",
-    1,
+    1
+  );
+  const [customWidth, setCustomWidth] = useLocalStorage<number>(
+    "svgTool_customWidth",
+    imageMetadata?.width ?? 0
+  );
+  const [customHeight, setCustomHeight] = useLocalStorage<number>(
+    "svgTool_customHeight",
+    imageMetadata?.height ?? 0
   );
 
   // Get the actual numeric scale value
   const effectiveScale = scale === "custom" ? customScale : scale;
+
+  // Calculate dimensions based on mode
+  const finalDimensions = useMemo(() => {
+    if (!imageMetadata) return { width: 0, height: 0 };
+
+    if (resolutionMode === "scale") {
+      return {
+        width: imageMetadata.width * effectiveScale,
+        height: imageMetadata.height * effectiveScale,
+      };
+    } else {
+      return {
+        width: customWidth,
+        height: customHeight,
+      };
+    }
+  }, [imageMetadata, resolutionMode, effectiveScale, customWidth, customHeight]);
 
   if (!imageMetadata)
     return (
@@ -165,9 +197,7 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       {/* Preview Section */}
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         <SVGRenderer svgContent={rawContent} />
-        <p className="text-lg font-medium text-white/80">
-          {imageMetadata.name}
-        </p>
+        <p className="text-lg font-medium text-white/80">{imageMetadata.name}</p>
       </div>
 
       {/* Size Information */}
@@ -180,23 +210,56 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         </div>
 
         <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Scaled</span>
+          <span className="text-sm text-white/60">Output</span>
           <span className="font-medium text-white">
-            {imageMetadata.width * effectiveScale} ×{" "}
-            {imageMetadata.height * effectiveScale}
+            {Math.round(finalDimensions.width)} × {Math.round(finalDimensions.height)}
           </span>
         </div>
       </div>
 
-      {/* Scale Controls */}
-      <SVGScaleSelector
-        title="Scale Factor"
-        options={[1, 2, 4, 8, 16, 32, 64]}
-        selected={scale}
-        onChange={setScale}
-        customValue={customScale}
-        onCustomValueChange={setCustomScale}
+      {/* Resolution Mode Selector */}
+      <OptionSelector
+        title="Resolution Mode"
+        options={["scale", "dimensions"]}
+        selected={resolutionMode}
+        onChange={setResolutionMode}
+        formatOption={(option: ResolutionMode) =>
+          option === "scale" ? "Scale Factor" : "Custom Dimensions"
+        }
       />
+
+      {/* Scale Controls */}
+      {resolutionMode === "scale" ? (
+        <SVGScaleSelector
+          title="Scale Factor"
+          options={[1, 2, 4, 8, 16, 32, 64]}
+          selected={scale}
+          onChange={setScale}
+          customValue={customScale}
+          onCustomValueChange={setCustomScale}
+        />
+      ) : (
+        <div className="flex flex-col items-center gap-4">
+          <span className="text-sm text-white/60">Dimensions (px)</span>
+          <div className="flex gap-4">
+            <input
+              type="number"
+              value={customWidth}
+              onChange={(e) => setCustomWidth(Math.max(1, parseInt(e.target.value) || 0))}
+              className="w-24 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-white"
+              placeholder="Width"
+            />
+            <span className="text-white/60">×</span>
+            <input
+              type="number"
+              value={customHeight}
+              onChange={(e) => setCustomHeight(Math.max(1, parseInt(e.target.value) || 0))}
+              className="w-24 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-white"
+              placeholder="Height"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex gap-3">
@@ -208,7 +271,7 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         </button>
         <SaveAsPngButton
           svgContent={rawContent}
-          scale={effectiveScale}
+          scale={resolutionMode === "scale" ? effectiveScale : Math.max(customWidth / imageMetadata.width, customHeight / imageMetadata.height)}
           imageMetadata={imageMetadata}
         />
       </div>
