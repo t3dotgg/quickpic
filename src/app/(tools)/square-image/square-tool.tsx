@@ -128,7 +128,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
             plausible("create-square-image");
             handleSaveImage();
           }}
-          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-hidden focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
         >
           Save Image
         </button>

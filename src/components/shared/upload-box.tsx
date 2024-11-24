@@ -41,7 +41,7 @@ export function UploadBox({
         </svg>
         <p className="text-sm text-gray-400">Drag and Drop</p>
         <p className="text-sm text-gray-500">or</p>
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
           <span>{description}</span>
           <input
             type="file"

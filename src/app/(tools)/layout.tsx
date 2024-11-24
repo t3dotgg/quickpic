@@ -35,7 +35,7 @@ export default function ToolsLayout({
   return (
     <div className="flex min-h-screen flex-col justify-between p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
       <BackButton />
-      <main className="flex flex-grow flex-col items-center justify-center">
+      <main className="flex grow flex-col items-center justify-center">
         {children}
       </main>
       <footer className="mt-8 text-center text-sm text-gray-500">

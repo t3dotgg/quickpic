@@ -123,7 +123,7 @@ function SaveAsPngButton({
           plausible("convert-svg-to-png");
           void convertToPng();
         }}
-        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+        className="focus:ring-opacity-75 rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:ring-2 focus:ring-green-400 focus:outline-hidden"
       >
         Save as PNG
       </button>
