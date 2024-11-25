@@ -79,60 +79,65 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
-      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
+    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-12 p-6 lg:flex-nowrap">
+      <div className="flex w-full max-w-fit flex-col items-center gap-4 rounded-xl p-6">
         {squareImageContent && (
-          <img src={squareImageContent} alt="Preview" className="mb-4" />
+          <img
+            src={squareImageContent}
+            alt="Preview"
+            className="mb-4 max-h-[600px]"
+          />
         )}
         <p className="text-lg font-medium text-white/80">
           {imageMetadata.name}
         </p>
       </div>
+      <section className="flex min-w-fit max-w-2xl flex-col items-center justify-center gap-6 p-6">
+        <div className="flex gap-6 text-base">
+          <div className="flex min-w-fit flex-col items-center rounded-lg bg-white/5 p-3">
+            <span className="text-sm text-white/60">Original</span>
+            <span className="font-medium text-white">
+              {imageMetadata.width} × {imageMetadata.height}
+            </span>
+          </div>
 
-      <div className="flex gap-6 text-base">
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Original</span>
-          <span className="font-medium text-white">
-            {imageMetadata.width} × {imageMetadata.height}
-          </span>
+          <div className="flex min-w-fit flex-col items-center rounded-lg bg-white/5 p-3">
+            <span className="text-sm text-white/60">Square Size</span>
+            <span className="font-medium text-white">
+              {Math.max(imageMetadata.width, imageMetadata.height)} ×{" "}
+              {Math.max(imageMetadata.width, imageMetadata.height)}
+            </span>
+          </div>
         </div>
 
-        <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-          <span className="text-sm text-white/60">Square Size</span>
-          <span className="font-medium text-white">
-            {Math.max(imageMetadata.width, imageMetadata.height)} ×{" "}
-            {Math.max(imageMetadata.width, imageMetadata.height)}
-          </span>
+        <OptionSelector
+          title="Background Color"
+          options={["white", "black"]}
+          selected={backgroundColor}
+          onChange={setBackgroundColor}
+          formatOption={(option) =>
+            option.charAt(0).toUpperCase() + option.slice(1)
+          }
+        />
+
+        <div className="flex gap-3">
+          <button
+            onClick={cancel}
+            className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              plausible("create-square-image");
+              handleSaveImage();
+            }}
+            className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+          >
+            Save Image
+          </button>
         </div>
-      </div>
-
-      <OptionSelector
-        title="Background Color"
-        options={["white", "black"]}
-        selected={backgroundColor}
-        onChange={setBackgroundColor}
-        formatOption={(option) =>
-          option.charAt(0).toUpperCase() + option.slice(1)
-        }
-      />
-
-      <div className="flex gap-3">
-        <button
-          onClick={cancel}
-          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={() => {
-            plausible("create-square-image");
-            handleSaveImage();
-          }}
-          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
-        >
-          Save Image
-        </button>
-      </div>
+      </section>
     </div>
   );
 }
