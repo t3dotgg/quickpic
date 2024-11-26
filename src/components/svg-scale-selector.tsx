@@ -36,67 +36,47 @@ export function SVGScaleSelector({
   }, [selected]);
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <span className="text-sm text-white/60">{title}</span>
-      <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-3">
+      <span className="text-sm text-[var(--muted)]">{title}</span>
+      <div className="flex flex-col items-center gap-3">
         <div
           ref={containerRef}
-          className="relative inline-flex rounded-lg bg-white/5 p-1"
+          className="relative inline-flex rounded-lg bg-black/5 p-1"
         >
           <div
             ref={highlightRef}
-            className="absolute top-1 h-[calc(100%-8px)] rounded-md bg-blue-600 transition-all duration-200"
+            className="absolute top-1 h-[calc(100%-8px)] rounded-md bg-[var(--accent)] transition-all duration-200"
           />
           {[...options, "custom" as const].map((option) => (
             <button
-              key={String(option)}
-              ref={option === selected ? selectedRef : null}
-              onClick={() =>
-                onChange(typeof option === "number" ? option : "custom")
-              }
-              className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                option === selected
+              key={option}
+              ref={selected === option ? selectedRef : undefined}
+              className={`relative z-10 rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                selected === option
                   ? "text-white"
-                  : "text-white/80 hover:text-white"
+                  : "text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
+              onClick={() => onChange(option)}
             >
-              {option === "custom" ? "Custom" : `${option}×`}
+              {option === "custom" ? "Custom" : `${option}x`}
             </button>
           ))}
         </div>
-        {selected === "custom" && (
-          <input
-            type="number"
-            min="0"
-            max="64"
-            step="1"
-            value={customValue}
-            onChange={(e) => {
-              const value = Math.min(64, parseFloat(e.target.value));
-              onCustomValueChange?.(value);
-            }}
-            onKeyDown={(e) => {
-              if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
-
-              e.preventDefault();
-              const currentValue = customValue ?? 0;
-              let step = 1;
-
-              if (e.shiftKey) step = 10;
-              if (e.altKey) step = 0.1;
-
-              const newValue =
-                e.key === "ArrowUp" ? currentValue + step : currentValue - step;
-
-              const clampedValue = Math.min(
-                64,
-                Math.max(0, Number(newValue.toFixed(1))),
-              );
-              onCustomValueChange?.(clampedValue);
-            }}
-            className="w-24 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-white"
-            placeholder="Enter scale"
-          />
+        {selected === "custom" && onCustomValueChange && (
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={10}
+              step={0.1}
+              value={customValue}
+              onChange={(e) =>
+                onCustomValueChange(parseFloat(e.target.value) || 1)
+              }
+              className="w-20 rounded-lg border border-[var(--muted)] bg-black/5 px-3 py-1.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--accent)]"
+            />
+            <span className="text-sm text-[var(--muted)]">x</span>
+          </div>
         )}
       </div>
     </div>

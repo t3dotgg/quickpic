@@ -2,10 +2,10 @@ import Link from "next/link";
 
 function BackButton() {
   return (
-    <div className="fixed left-4 top-4 z-50">
+    <div className="fixed left-4 top-4 z-50 sm:left-8 sm:top-8">
       <Link
         href="/"
-        className="flex items-center gap-2 rounded-md px-3 py-1 text-sm font-medium text-gray-400 transition-colors duration-200 hover:text-gray-200"
+        className="flex items-center gap-2 rounded-lg border border-transparent px-4 py-2 text-[var(--muted)] transition-colors hover:border-[var(--muted)] hover:text-[var(--foreground)]"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -33,7 +33,7 @@ export default function ToolsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col justify-between p-8 font-[family-name:var(--font-geist-sans)] sm:p-20">
+    <div className="flex min-h-screen flex-col justify-between p-6 font-[family-name:var(--font-geist-sans)] sm:p-12">
       <BackButton />
       <main className="flex flex-grow flex-col items-center justify-center">
         {children}
@@ -43,7 +43,7 @@ export default function ToolsLayout({
           href="https://github.com/t3dotgg/quickpic"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:underline"
+          className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
         >
           View on GitHub
         </a>

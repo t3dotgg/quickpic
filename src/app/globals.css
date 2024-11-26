@@ -5,10 +5,23 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --accent: #3b82f6;
+  --hover: #60a5fa;
+  --muted: #525252;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+@layer base {
+  a {
+    @apply transition-colors duration-200;
+  }
 }
