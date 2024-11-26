@@ -182,8 +182,8 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
           <span className="text-sm text-white/60">Scaled</span>
           <span className="font-medium text-white">
-            {imageMetadata.width * effectiveScale} ×{" "}
-            {imageMetadata.height * effectiveScale}
+            {Math.ceil(imageMetadata.width * effectiveScale)} ×{" "}
+            {Math.ceil(imageMetadata.height * effectiveScale)}
           </span>
         </div>
       </div>
