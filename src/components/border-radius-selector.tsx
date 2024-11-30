@@ -72,40 +72,49 @@ export function BorderRadiusSelector({
             ref={highlightRef}
             className="absolute inset-y-1 rounded-md bg-blue-600 transition-all duration-200"
           />
-          {[...options, "custom" as const].map((option) => (
+          {[...options].map((option) => (
             <button
               key={String(option)}
               ref={option === selected ? selectedRef : null}
-              onClick={() =>
-                onChange(typeof option === "number" ? option : "custom")
-              }
+              onClick={() => onChange(option)}
               className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 option === selected
                   ? "text-white"
                   : "text-white/80 hover:text-white"
               }`}
             >
-              {option === "custom" ? "Custom" : option}
+              {option}
             </button>
           ))}
+          <button
+            ref={selected == "custom" ? selectedRef : null}
+            onClick={() => onChange("custom")}
+            className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors w-fit ${
+              selected == "custom"
+                ? "text-white"
+                : "text-white/80 hover:text-white"
+            }`}
+          >
+            {selected === "custom" ? (
+              <div className="relative flex items-center">
+                <input
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={customValue}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  className="w-12 bg-transparent text-sm text-white outline-none appearance-none!"
+                />
+                <span className="absolute right-0 text-sm text-white/60">
+                  px
+                </span>
+              </div>
+            ) : (
+              "Custom"
+            )}
+          </button>
         </div>
-        {selected === "custom" && (
-          <div className="flex items-center gap-2">
-            <div className="relative flex items-center">
-              <input
-                type="number"
-                min="0"
-                max="999"
-                value={customValue}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                className="w-24 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-white"
-                placeholder="Enter radius"
-              />
-              <span className="absolute right-3 text-sm text-white/60">px</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

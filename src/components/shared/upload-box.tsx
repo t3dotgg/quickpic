@@ -16,9 +16,9 @@ export function UploadBox({
   onChange,
 }: UploadBoxProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-4">
+    <div className="flex flex-col h-full w-full items-center justify-center gap-4 pt-36 md:pt-24 px-8">
       <div className="flex flex-col items-center gap-2">
-        <p className="text-center text-white">{title}</p>
+        <p className="text-center text-white text-lg">{title}</p>
         {subtitle && (
           <p className="inline-block rounded-full border border-white/30 bg-white/5 px-2 py-0.5 text-center text-sm text-white/60">
             {subtitle}
