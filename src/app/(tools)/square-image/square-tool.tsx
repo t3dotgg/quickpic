@@ -16,7 +16,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     props.fileUploaderProps;
 
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
-    "black" | "white"
+    "black" | "white" | "transparent"
   >("squareTool_backgroundColor", "white");
 
   const [squareImageContent, setSquareImageContent] = useState<string | null>(
@@ -34,8 +34,12 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
       if (!ctx) return;
 
       // Fill background
-      ctx.fillStyle = backgroundColor;
-      ctx.fillRect(0, 0, size, size);
+      if (backgroundColor === "transparent") {
+        ctx.clearRect(0, 0, size, size);
+      } else {
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, size, size);
+      }
 
       // Load and center the image
       const img = new Image();
@@ -108,7 +112,7 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 
       <OptionSelector
         title="Background Color"
-        options={["white", "black"]}
+        options={["white", "black", "transparent"]}
         selected={backgroundColor}
         onChange={setBackgroundColor}
         formatOption={(option) =>
