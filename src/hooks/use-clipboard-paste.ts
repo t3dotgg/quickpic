@@ -2,14 +2,18 @@
 
 import { useEffect, useCallback } from "react";
 
+import { type FileTypeString, generateFileTypesString } from "@/lib/file-utils";
+
 interface UseClipboardPasteProps {
+  acceptedFileTypes: FileTypeString[];
+  onError?: (error: string) => void;
   onPaste: (file: File) => void;
-  acceptedFileTypes: string[];
 }
 
 export function useClipboardPaste({
-  onPaste,
   acceptedFileTypes,
+  onError,
+  onPaste,
 }: UseClipboardPasteProps) {
   const handlePaste = useCallback(
     async (event: ClipboardEvent) => {
@@ -17,6 +21,8 @@ export function useClipboardPaste({
       if (!items) return;
 
       for (const item of Array.from(items)) {
+        if (item.kind === "string") break;
+
         if (item.type.startsWith("image/")) {
           const file = item.getAsFile();
           if (!file) continue;
@@ -28,15 +34,39 @@ export function useClipboardPaste({
               file.name.toLowerCase().endsWith(type.replace("*", "")),
           );
 
+          const acceptedFileTypesString =
+            generateFileTypesString(acceptedFileTypes);
+
+          event.preventDefault();
+
           if (isAcceptedType) {
-            event.preventDefault();
             onPaste(file);
             break;
+          } else {
+            if (onError)
+              onError(
+                `Pasted image has invalid type. Valid types are: ${acceptedFileTypesString}.`,
+              );
+            else
+              alert(
+                `Pasted image has invalid type. Valid types are: ${acceptedFileTypesString}.`,
+              );
+            break;
           }
+        } else {
+          if (onError)
+            onError(
+              `Pasted file is not an image. Please upload a valid image file.`,
+            );
+          else
+            alert(
+              `Pasted file is not an image. Please upload a valid image file.`,
+            );
+          break;
         }
       }
     },
-    [onPaste, acceptedFileTypes],
+    [acceptedFileTypes, onError, onPaste],
   );
 
   useEffect(() => {

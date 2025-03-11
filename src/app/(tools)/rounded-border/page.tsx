@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function RoundedToolPage() {
-  return <RoundedTool />;
+  return <RoundedTool title={metadata.title} />;
 }

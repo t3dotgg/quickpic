@@ -1,10 +1,10 @@
 import { SVGTool } from "./svg-tool";
 
 export const metadata = {
-  title: "SVG to PNG converter - QuickPic",
+  title: "SVG to PNG Converter - QuickPic",
   description: "Convert SVGs to PNGs. Also makes them bigger.",
 };
 
 export default function SVGToolPage() {
-  return <SVGTool />;
+  return <SVGTool title={metadata.title} />;
 }

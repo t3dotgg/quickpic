@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function SquareToolPage() {
-  return <SquareTool />;
+  return <SquareTool title={metadata.title} />;
 }

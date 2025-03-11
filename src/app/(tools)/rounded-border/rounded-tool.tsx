@@ -1,15 +1,28 @@
 "use client";
-import { usePlausible } from "next-plausible";
+
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocalStorage } from "@/hooks/use-local-storage";
-import { UploadBox } from "@/components/shared/upload-box";
-import { OptionSelector } from "@/components/shared/option-selector";
+import { useRouter } from "next/navigation";
+import { usePlausible } from "next-plausible";
+
 import { BorderRadiusSelector } from "@/components/border-radius-selector";
-import {
-  useFileUploader,
-  type FileUploaderResult,
-} from "@/hooks/use-file-uploader";
+import { ErrorMessage } from "@/components/shared/error-message";
+import { FetchFromUrlForm } from "@/components/shared/fetch-from-url-form";
 import { FileDropzone } from "@/components/shared/file-dropzone";
+import { ClipboardPasteIcon, DownloadIcon } from "@/components/shared/icons";
+import { OptionSelector } from "@/components/shared/option-selector";
+import { PageTitle } from "@/components/shared/page-title";
+import { PreviewScale } from "@/components/shared/preview-scale";
+import { UploadBox } from "@/components/shared/upload-box";
+
+import { useFileFetcher } from "@/hooks/use-file-fetcher";
+import { useFileUploader } from "@/hooks/use-file-uploader";
+import { useKeyDown } from "@/hooks/use-keydown";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { isInteractiveElementFocused } from "@/lib/dom-utils";
+
+import { type ImageMetadata } from "@/lib/file-utils";
+import { type FileFetcherResult } from "@/hooks/use-file-fetcher";
+import { type FileUploaderResult } from "@/hooks/use-file-uploader";
 
 type Radius = number;
 
@@ -76,38 +89,66 @@ function useImageConverter(props: {
 }
 
 interface ImageRendererProps {
-  imageContent: string;
-  radius: Radius;
   background: BackgroundOption;
+  imageContainer: React.RefObject<HTMLDivElement> | null;
+  imageContent: string;
+  imageMetadata: { width: number; height: number; name: string };
+  radius: Radius | null;
+  setPreviewScale: (scale: number | null) => void;
 }
 
 const ImageRenderer = ({
-  imageContent,
-  radius,
   background,
+  imageContainer,
+  imageContent,
+  imageMetadata,
+  radius,
+  setPreviewScale,
 }: ImageRendererProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [effectiveBorderRadius, setEffectiveBorderRadius] = useState<
+    number | null
+  >(radius);
+  const [internalScale, setInternalScale] = useState<number>(1);
 
   useEffect(() => {
-    if (containerRef.current) {
-      const imgElement = containerRef.current.querySelector("img");
-      if (imgElement) {
-        imgElement.style.borderRadius = `${radius}px`;
-      }
-    }
-  }, [imageContent, radius]);
+    if (!imageContainer?.current || !imageContent) return;
+    const container = imageContainer.current;
+
+    const updatePreviewScaleFactor = () => {
+      const imageContainerWidth = container.clientWidth;
+
+      const previewScaleFactor = Math.min(
+        imageContainerWidth / imageMetadata.width,
+        imageContainerWidth / imageMetadata.height,
+        1, // Prevent upscaling
+      );
+
+      setEffectiveBorderRadius((radius ?? 1) * previewScaleFactor);
+      setPreviewScale(previewScaleFactor < 1 ? previewScaleFactor : null);
+      setInternalScale(previewScaleFactor);
+    };
+
+    updatePreviewScaleFactor();
+    const resizeObserver = new ResizeObserver(updatePreviewScaleFactor);
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, [imageContent, imageMetadata, radius, imageContainer, setPreviewScale]);
 
   return (
-    <div ref={containerRef} className="relative w-[500px]">
-      <div
-        className="absolute inset-0"
-        style={{ backgroundColor: background, borderRadius: 0 }}
-      />
+    <div
+      className={background === "transparent" ? "checkerboard" : ""}
+      style={{ backgroundColor: background }}
+    >
       <img
         src={imageContent}
+        width={imageMetadata.width * internalScale}
+        height={imageMetadata.height * internalScale}
         alt="Preview"
-        className="relative rounded-lg"
-        style={{ width: "100%", height: "auto", objectFit: "contain" }}
+        style={{
+          borderRadius: `${effectiveBorderRadius}px`,
+          objectFit: "contain",
+        }}
       />
     </div>
   );
@@ -143,23 +184,57 @@ function SaveAsPngButton({
           plausible("convert-image-to-png");
           void convertToPng();
         }}
-        className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+        className="flex h-10 items-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-left text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
       >
+        <DownloadIcon strokeWidth={2.5} />
         Save as PNG
       </button>
     </div>
   );
 }
 
-function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
-  const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
-    props.fileUploaderProps;
-  const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
+type RoundedToolCoreProps = {
+  fileUploaderProps: FileUploaderResult;
+  fileFetcherProps: FileFetcherResult;
+  error: string | null;
+  onError: (error: string | null) => void;
+};
+
+function RoundedToolCore({
+  fileUploaderProps,
+  fileFetcherProps,
+  error,
+  onError,
+}: RoundedToolCoreProps) {
+  const router = useRouter();
+  const [radius, setRadius] = useLocalStorage<Radius | null>(
+    "roundedTool_radius",
+    2,
+  );
   const [isCustomRadius, setIsCustomRadius] = useState(false);
   const [background, setBackground] = useLocalStorage<BackgroundOption>(
     "roundedTool_background",
     "transparent",
   );
+
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const [imageMetadata, setImageMetadata] = useState<ImageMetadata>(
+    fileUploaderProps.imageMetadata,
+  );
+  const [imageContent, setImageContent] = useState<string>(
+    fileUploaderProps.imageContent,
+  );
+  const [previewScale, setPreviewScale] = useState<number | null>(null);
+
+  const SubtitleIcon = <ClipboardPasteIcon className="-ml-1" />;
+
+  const cancel = () => {
+    fileUploaderProps.cancel();
+    fileFetcherProps.cancel();
+    setImageMetadata(null);
+    setImageContent("");
+    setPreviewScale(null);
+  };
 
   const handleRadiusChange = (value: number | "custom") => {
     if (value === "custom") {
@@ -170,42 +245,114 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     }
   };
 
+  useEffect(() => {
+    // Grab metadata and content from method of file upload
+    let metadata: ImageMetadata | null = null;
+    let content: string | null = null;
+
+    if (fileUploaderProps.imageMetadata) {
+      metadata = fileUploaderProps.imageMetadata;
+      content = fileUploaderProps.imageContent;
+    } else {
+      metadata = fileFetcherProps.imageMetadata;
+      content = fileFetcherProps.imageContent;
+    }
+
+    if (metadata) {
+      setImageMetadata(metadata);
+      setImageContent(content);
+      onError(null);
+    } else {
+      setImageMetadata(null);
+      setImageContent("");
+    }
+  }, [
+    fileUploaderProps.imageMetadata,
+    fileUploaderProps.imageContent,
+    fileFetcherProps.imageMetadata,
+    fileFetcherProps.imageContent,
+    onError,
+  ]);
+
+  // Run the cancel function when the user presses the Escape key on the preview screen,
+  // and navigate back to the home screen when the user presses Escape on the initial tool screen
+  useKeyDown("Escape", () => {
+    if (imageMetadata && imageContent) {
+      // Preview screen
+      if (isInteractiveElementFocused("ALL", ["option", "select"])) {
+        // if any option selector buttons are focused, blur them instead of going back to initial tool screen
+        (document.activeElement as HTMLButtonElement).blur();
+      } else {
+        // otherwise, cancel/go back to initial tool screen
+        cancel();
+      }
+    } else {
+      // Initial tool screen
+      if (isInteractiveElementFocused("INPUT")) return; // ignore if input is focused
+      router.push("/"); // otherwise, return to home screen
+    }
+  });
+
   if (!imageMetadata) {
     return (
-      <UploadBox
-        title="Add rounded borders to your images. Quick and easy."
-        subtitle="Allows pasting images from clipboard"
-        description="Upload Image"
-        accept="image/*"
-        onChange={handleFileUploadEvent}
-      />
+      <div className="flex flex-col items-center gap-4">
+        <UploadBox
+          title="Add rounded borders to your images. Quick and easy."
+          subtitle="Allows pasting images from clipboard"
+          subtitleIcon={SubtitleIcon}
+          description="Upload Image"
+          accept="image/*"
+          onChange={fileUploaderProps.handleFileUploadEvent}
+        />
+
+        <FetchFromUrlForm
+          accept="image/*"
+          error={fileFetcherProps.error}
+          pending={fileFetcherProps.pending}
+          handleSubmit={fileFetcherProps.handleFetchFile}
+        />
+
+        {error && <ErrorMessage error={error} />}
+      </div>
     );
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
-      <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
+    <div className="mx-auto flex max-w-sm flex-col items-center justify-center gap-6 p-8">
+      {/* Preview Section */}
+      <div
+        ref={imageContainerRef}
+        className="flex w-full flex-col items-center gap-4 rounded-xl"
+      >
+        <PreviewScale previewScale={previewScale} />
         <ImageRenderer
           imageContent={imageContent}
+          imageMetadata={imageMetadata}
           radius={radius}
           background={background}
+          setPreviewScale={setPreviewScale}
+          imageContainer={imageContainerRef as React.RefObject<HTMLDivElement>}
         />
-        <p className="text-lg font-medium text-white/80">
+        <p className="break-all text-lg font-medium text-white/80">
           {imageMetadata.name}
         </p>
       </div>
 
+      {/* Size Information */}
       <div className="flex flex-col items-center rounded-lg bg-white/5 p-3">
-        <span className="text-sm text-white/60">Original Size</span>
-        <span className="font-medium text-white">
+        <span className="whitespace-nowrap text-center text-sm text-white/60">
+          Actual Size
+        </span>
+        <span className="text-center font-medium text-white">
           {imageMetadata.width} × {imageMetadata.height}
         </span>
       </div>
 
+      {/* Radius & Background Controls */}
       <BorderRadiusSelector
         title="Border Radius"
         options={[2, 4, 8, 16, 32, 64]}
-        selected={isCustomRadius ? "custom" : radius}
+        selected={isCustomRadius ? "custom" : (radius ?? 1)}
         onChange={handleRadiusChange}
         customValue={radius}
         onCustomValueChange={setRadius}
@@ -219,18 +366,19 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         formatOption={(option) =>
           option.charAt(0).toUpperCase() + option.slice(1)
         }
+        className="w-full"
       />
 
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <button
           onClick={cancel}
-          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-red-800"
+          className="h-10 rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-white/90 transition-colors duration-200 hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/10"
         >
           Cancel
         </button>
         <SaveAsPngButton
           imageContent={imageContent}
-          radius={radius}
+          radius={radius ?? 1}
           background={background}
           imageMetadata={imageMetadata}
         />
@@ -239,16 +387,25 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   );
 }
 
-export function RoundedTool() {
-  const fileUploaderProps = useFileUploader();
+export function RoundedTool({ title }: { title: string }) {
+  const [error, setError] = useState<string | null>(null);
+  const fileUploaderProps = useFileUploader({ onError: setError });
+  const fileFetcherProps = useFileFetcher({ onError: setError });
 
   return (
     <FileDropzone
-      setCurrentFile={fileUploaderProps.handleFileUpload}
       acceptedFileTypes={["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"]}
       dropText="Drop image file"
+      setCurrentFile={fileUploaderProps.handleFileUpload}
+      onError={setError}
     >
-      <RoundedToolCore fileUploaderProps={fileUploaderProps} />
+      <PageTitle title={title} />
+      <RoundedToolCore
+        fileUploaderProps={fileUploaderProps}
+        fileFetcherProps={fileFetcherProps}
+        error={error}
+        onError={setError}
+      />
     </FileDropzone>
   );
 }

@@ -1,50 +1,8 @@
-import { useCallback } from "react";
-import { type ChangeEvent, useState } from "react";
 import { useClipboardPaste } from "./use-clipboard-paste";
+import { useProcessFile } from "./use-process-file";
 
-const parseSvgFile = (content: string, fileName: string) => {
-  const parser = new DOMParser();
-  const svgDoc = parser.parseFromString(content, "image/svg+xml");
-  const svgElement = svgDoc.documentElement;
-  const width = parseInt(svgElement.getAttribute("width") ?? "300");
-  const height = parseInt(svgElement.getAttribute("height") ?? "150");
-
-  // Convert SVG content to a data URL
-  const svgBlob = new Blob([content], { type: "image/svg+xml" });
-  const svgUrl = URL.createObjectURL(svgBlob);
-
-  return {
-    content: svgUrl,
-    metadata: {
-      width,
-      height,
-      name: fileName,
-    },
-  };
-};
-
-const parseImageFile = (
-  content: string,
-  fileName: string,
-): Promise<{
-  content: string;
-  metadata: { width: number; height: number; name: string };
-}> => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      resolve({
-        content,
-        metadata: {
-          width: img.width,
-          height: img.height,
-          name: fileName,
-        },
-      });
-    };
-    img.src = content;
-  });
-};
+import { type ChangeEvent } from "react";
+import { type FileTypeString } from "@/lib/file-utils";
 
 export type FileUploaderResult = {
   /** The processed image content as a data URL (for regular images) or object URL (for SVGs) */
@@ -64,6 +22,11 @@ export type FileUploaderResult = {
   cancel: () => void;
 };
 
+type FileUploaderOptions = {
+  accept?: FileTypeString | FileTypeString[];
+  onError?: (error: string) => void;
+};
+
 /**
  * A hook for handling file uploads, particularly images and SVGs
  * @returns {FileUploaderResult} An object containing:
@@ -73,71 +36,45 @@ export type FileUploaderResult = {
  * - handleFileUpload: Function to handle file input change events
  * - cancel: Function to reset the upload state
  */
-export const useFileUploader = (): FileUploaderResult => {
-  const [imageContent, setImageContent] = useState<string>("");
-  const [rawContent, setRawContent] = useState<string>("");
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
+export const useFileUploader = ({
+  accept,
+  onError,
+}: FileUploaderOptions = {}): FileUploaderResult => {
+  const { imageContent, rawContent, imageMetadata, processFile, cancel } =
+    useProcessFile({ onError });
 
-  const processFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const content = e.target?.result as string;
-      setRawContent(content);
+  const acceptedFileTypes: FileTypeString[] = accept
+    ? Array.isArray(accept)
+      ? accept
+      : [accept]
+    : ["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"];
 
-      if (file.type === "image/svg+xml") {
-        const { content: svgContent, metadata } = parseSvgFile(
-          content,
-          file.name,
-        );
-        setImageContent(svgContent);
-        setImageMetadata(metadata);
-      } else {
-        const { content: imgContent, metadata } = await parseImageFile(
-          content,
-          file.name,
-        );
-        setImageContent(imgContent);
-        setImageMetadata(metadata);
-      }
-    };
-
-    if (file.type === "image/svg+xml") {
-      reader.readAsText(file);
-    } else {
-      reader.readAsDataURL(file);
-    }
+  const handleFileUpload = (file: File) => {
+    void processFile(file);
   };
 
   const handleFileUploadEvent = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      processFile(file);
+      void processFile(file);
     }
   };
 
-  const handleFilePaste = useCallback((file: File) => {
-    processFile(file);
-  }, []);
+  const handleFilePaste = (file: File) => {
+    void processFile(file);
+  };
 
   useClipboardPaste({
+    acceptedFileTypes,
+    onError,
     onPaste: handleFilePaste,
-    acceptedFileTypes: ["image/*", ".jpg", ".jpeg", ".png", ".webp", ".svg"],
   });
-
-  const cancel = () => {
-    setImageContent("");
-    setImageMetadata(null);
-  };
 
   return {
     imageContent,
     rawContent,
     imageMetadata,
-    handleFileUpload: processFile,
+    handleFileUpload,
     handleFileUploadEvent,
     cancel,
   };

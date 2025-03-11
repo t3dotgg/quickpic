@@ -12,3 +12,18 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@layer base {
+  .checkerboard {
+    background: repeating-conic-gradient(#ffffff06 0% 25%, #ffffff0d 0% 50%) 0 / 10px 10px;
+  }
+}

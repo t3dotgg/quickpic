@@ -1,10 +1,15 @@
 import React, { useCallback, useState, useRef } from "react";
 
+import { UploadIcon } from "@/components/shared/icons";
+
+import { type FileTypeString, generateFileTypesString } from "@/lib/file-utils";
+
 interface FileDropzoneProps {
   children: React.ReactNode;
   acceptedFileTypes: string[];
   dropText: string;
   setCurrentFile: (file: File) => void;
+  onError?: (error: string | null) => void;
 }
 
 export function FileDropzone({
@@ -12,16 +17,17 @@ export function FileDropzone({
   acceptedFileTypes,
   dropText,
   setCurrentFile,
+  onError,
 }: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
 
-  const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-  }, []);
+  };
 
-  const handleDragIn = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragIn = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current++;
@@ -29,9 +35,9 @@ export function FileDropzone({
     if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
       setIsDragging(true);
     }
-  }, []);
+  };
 
-  const handleDragOut = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOut = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current--;
@@ -39,7 +45,7 @@ export function FileDropzone({
     if (dragCounter.current === 0) {
       setIsDragging(false);
     }
-  }, []);
+  };
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -53,8 +59,9 @@ export function FileDropzone({
         const droppedFile = files[0];
 
         if (!droppedFile) {
-          alert("How did you do a drop with no files???");
-          throw new Error("No files dropped");
+          if (onError) onError("How did you do a drop with no files???");
+          else alert("How did you do a drop with no files???");
+          return;
         }
 
         if (
@@ -63,15 +70,25 @@ export function FileDropzone({
             droppedFile.name.toLowerCase().endsWith(type.replace("*", "")),
           )
         ) {
-          alert("Invalid file type. Please upload a supported file type.");
-          throw new Error("Invalid file");
+          const acceptedFileTypesString = generateFileTypesString(
+            acceptedFileTypes as FileTypeString[],
+          );
+          if (onError)
+            onError(
+              `Uploaded file has invalid type. Valid types are: ${acceptedFileTypesString}.`,
+            );
+          else
+            alert(
+              `Uploaded file has invalid type. Valid types are: ${acceptedFileTypesString}.`,
+            );
+          return;
         }
 
         // Happy path
         setCurrentFile(droppedFile);
       }
     },
-    [acceptedFileTypes, setCurrentFile],
+    [acceptedFileTypes, setCurrentFile, onError],
   );
 
   return (
@@ -80,13 +97,14 @@ export function FileDropzone({
       onDragLeave={handleDragOut}
       onDragOver={handleDrag}
       onDrop={handleDrop}
-      className="h-full w-full"
+      className="size-full"
     >
       {isDragging && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-          <div className="animate-in fade-in zoom-in relative flex h-[90%] w-[90%] transform items-center justify-center rounded-xl border-2 border-dashed border-white/30 transition-all duration-200 ease-out">
-            <p className="text-2xl font-semibold text-white">{dropText}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-8">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+          <div className="animate-in fade-in zoom-in relative flex size-full transform flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/30 transition-all duration-200 ease-out">
+            <UploadIcon className="size-12 text-gray-500" />
+            <p className="text-2xl font-semibold text-gray-500">{dropText}</p>
           </div>
         </div>
       )}
