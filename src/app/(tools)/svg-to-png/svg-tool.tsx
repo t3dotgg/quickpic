@@ -53,8 +53,8 @@ function useSvgConverter(props: {
         link.href = dataURL;
         const svgFileName = props.imageMetadata.name ?? "svg_converted";
 
-        // Remove the .svg extension
-        link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
+        // Remove the .svg extension (case-insensitive)
+        link.download = `${svgFileName.replace(/\.svg$/i, "")}-${props.scale}x.png`;
         link.click();
       }
     };
