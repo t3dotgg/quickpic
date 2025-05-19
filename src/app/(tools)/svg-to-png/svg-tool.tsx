@@ -2,6 +2,7 @@
 import { usePlausible } from "next-plausible";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import JSZip from "jszip";
 
 import { UploadBox } from "@/components/shared/upload-box";
 import { SVGScaleSelector } from "@/components/svg-scale-selector";
@@ -131,6 +132,91 @@ function SaveAsPngButton({
   );
 }
 
+function SaveAllPresetsButton({
+  svgContent,
+  imageMetadata,
+}: {
+  svgContent: string;
+  imageMetadata: { width: number; height: number; name: string };
+}) {
+  const plausible = usePlausible();
+  const presets = [1, 2, 4, 8, 16, 32, 64];
+
+  // Utility function to scale SVG and return PNG Blob
+  function convertSvgToPngBlob(
+    svgContent: string,
+    scale: number,
+    _imageMetadata: { width: number; height: number; name: string },
+  ): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      // Scale the SVG
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
+      const svgElement = svgDoc.documentElement;
+      const width = parseInt(svgElement.getAttribute("width") ?? "300");
+      const height = parseInt(svgElement.getAttribute("height") ?? "150");
+      const scaledWidth = width * scale;
+      const scaledHeight = height * scale;
+      svgElement.setAttribute("width", scaledWidth.toString());
+      svgElement.setAttribute("height", scaledHeight.toString());
+      const scaledSvg = new XMLSerializer().serializeToString(svgDoc);
+
+      // Create a canvas
+      const canvas = document.createElement("canvas");
+      canvas.width = scaledWidth;
+      canvas.height = scaledHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Failed to get canvas context"));
+
+      // Draw SVG to canvas
+      const img = new window.Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Failed to create PNG blob"));
+        }, "image/png");
+      };
+      img.onerror = reject;
+      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`;
+    });
+  }
+
+  return (
+    <div>
+      <button
+        onClick={async () => {
+          plausible("convert-svg-to-png");
+          const zip = new JSZip();
+          const svgFileName = imageMetadata.name ?? "svg_converted";
+          for (const preset of presets) {
+            try {
+              const blob = await convertSvgToPngBlob(
+                svgContent,
+                preset,
+                imageMetadata,
+              );
+              const fileName = `${svgFileName.replace(/\.svg$/i, "")}-${preset}x.png`;
+              zip.file(fileName, blob);
+            } catch (err) {
+              console.error(err);
+              // Optionally handle error for this preset
+            }
+          }
+          const zipBlob = await zip.generateAsync({ type: "blob" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(zipBlob);
+          link.download = `${svgFileName.replace(/\.svg$/i, "")}-all-presets.zip`;
+          link.click();
+        }}
+        className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+      >
+        Save all presets
+      </button>
+    </div>
+  );
+}
+
 import {
   type FileUploaderResult,
   useFileUploader,
@@ -209,6 +295,10 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
         <SaveAsPngButton
           svgContent={rawContent}
           scale={effectiveScale}
+          imageMetadata={imageMetadata}
+        />
+        <SaveAllPresetsButton
+          svgContent={rawContent}
           imageMetadata={imageMetadata}
         />
       </div>
