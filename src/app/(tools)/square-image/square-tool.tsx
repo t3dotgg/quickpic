@@ -12,23 +12,28 @@ import {
 import { useEffect, useState } from "react";
 
 function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
-  const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
+  const { imageBlobUrl, imageMetadata, handleFileUploadEvent, cancel } =
     props.fileUploaderProps;
 
   const [backgroundColor, setBackgroundColor] = useLocalStorage<
     "black" | "white"
   >("squareTool_backgroundColor", "white");
 
-  const [squareImageContent, setSquareImageContent] = useState<string | null>(
+  // Store blob URL to clean it up later
+  const [usedCanvasBlobUrl, setUsedCanvasBlobUrl] = useState<string | null>(
     null,
+  );
+  useEffect(
+    () => () => {
+      if (usedCanvasBlobUrl) URL.revokeObjectURL(usedCanvasBlobUrl);
+    },
+    [usedCanvasBlobUrl],
   );
 
   useEffect(() => {
-    if (imageContent && imageMetadata) {
-      const canvas = document.createElement("canvas");
+    if (imageBlobUrl && imageMetadata) {
       const size = Math.max(imageMetadata.width, imageMetadata.height);
-      canvas.width = size;
-      canvas.height = size;
+      const canvas = new OffscreenCanvas(size, size);
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
@@ -39,20 +44,22 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
 
       // Load and center the image
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         const x = (size - imageMetadata.width) / 2;
         const y = (size - imageMetadata.height) / 2;
         ctx.drawImage(img, x, y);
-        setSquareImageContent(canvas.toDataURL("image/png"));
+        const canvasBlob = await canvas.convertToBlob({ type: "image/png" });
+        const canvasBlobUrl = URL.createObjectURL(canvasBlob);
+        setUsedCanvasBlobUrl(canvasBlobUrl);
       };
-      img.src = imageContent;
+      img.src = imageBlobUrl;
     }
-  }, [imageContent, imageMetadata, backgroundColor]);
+  }, [imageBlobUrl, imageMetadata, backgroundColor]);
 
   const handleSaveImage = () => {
-    if (squareImageContent && imageMetadata) {
+    if (usedCanvasBlobUrl && imageMetadata) {
       const link = document.createElement("a");
-      link.href = squareImageContent;
+      link.href = usedCanvasBlobUrl;
       const originalFileName = imageMetadata.name;
       const fileNameWithoutExtension =
         originalFileName.substring(0, originalFileName.lastIndexOf(".")) ||
@@ -81,8 +88,8 @@ function SquareToolCore(props: { fileUploaderProps: FileUploaderResult }) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
-        {squareImageContent && (
-          <img src={squareImageContent} alt="Preview" className="mb-4" />
+        {usedCanvasBlobUrl && (
+          <img src={usedCanvasBlobUrl} alt="Preview" className="mb-4" />
         )}
         <p className="text-lg font-medium text-white/80">
           {imageMetadata.name}

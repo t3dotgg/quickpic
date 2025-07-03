@@ -1,6 +1,6 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 import { UploadBox } from "@/components/shared/upload-box";
@@ -8,65 +8,67 @@ import { SVGScaleSelector } from "@/components/svg-scale-selector";
 
 export type Scale = "custom" | number;
 
-function scaleSvg(svgContent: string, scale: number) {
-  const parser = new DOMParser();
-  const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
-  const svgElement = svgDoc.documentElement;
-  const width = parseInt(svgElement.getAttribute("width") ?? "300");
-  const height = parseInt(svgElement.getAttribute("height") ?? "150");
-
-  const scaledWidth = width * scale;
-  const scaledHeight = height * scale;
-
-  svgElement.setAttribute("width", scaledWidth.toString());
-  svgElement.setAttribute("height", scaledHeight.toString());
-
-  return new XMLSerializer().serializeToString(svgDoc);
-}
-
 function useSvgConverter(props: {
   canvas: HTMLCanvasElement | null;
-  svgContent: string;
+  imageBlobUrl: string;
   scale: number;
-  fileName?: string;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const { width, height, scaledSvg } = useMemo(() => {
-    const scaledSvg = scaleSvg(props.svgContent, props.scale);
+  const width = props.imageMetadata.width * props.scale,
+    height = props.imageMetadata.height * props.scale;
 
-    return {
-      width: props.imageMetadata.width * props.scale,
-      height: props.imageMetadata.height * props.scale,
-      scaledSvg,
-    };
-  }, [props.svgContent, props.scale, props.imageMetadata]);
+  // Store blob URL to clean it up later
+  const [usedCanvasBlobUrl, setUsedCanvasBlobUrl] = useState<string | null>(
+    null,
+  );
+  useEffect(
+    () => () => {
+      if (usedCanvasBlobUrl) URL.revokeObjectURL(usedCanvasBlobUrl);
+    },
+    [usedCanvasBlobUrl],
+  );
 
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
     // Trigger a "save image" of the resulting canvas content
-    const saveImage = () => {
-      if (props.canvas) {
-        const dataURL = props.canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = dataURL;
-        const svgFileName = props.imageMetadata.name ?? "svg_converted";
+    const saveImage = async () => {
+      const canvasBlob = await new Promise<Blob>((resolve, reject) => {
+        if (props.canvas) {
+          props.canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else reject(new Error("Canvas blob could not be created"));
+          });
+        } else reject(new Error("Canvas not present"));
+      });
+      const canvasBlobUrl = URL.createObjectURL(canvasBlob);
+      setUsedCanvasBlobUrl(canvasBlobUrl);
 
-        // Remove the .svg extension
-        link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
-        link.click();
-      }
+      const link = document.createElement("a");
+      link.href = canvasBlobUrl;
+      const svgFileName = props.imageMetadata.name;
+
+      // Remove the .svg extension
+      link.download = `${svgFileName.replace(".svg", "")}-${props.scale}x.png`;
+      link.click();
     };
 
     const img = new Image();
     // Call saveImage after the image has been drawn
     img.onload = () => {
-      ctx.drawImage(img, 0, 0);
-      saveImage();
+      ctx.clearRect(
+        0,
+        0,
+        props.canvas?.width ?? width,
+        props.canvas?.height ?? height,
+      );
+      ctx.drawImage(img, 0, 0, width, height);
+      void saveImage();
     };
 
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scaledSvg)}`;
+    img.src = props.imageBlobUrl;
   };
 
   return {
@@ -75,40 +77,19 @@ function useSvgConverter(props: {
   };
 }
 
-interface SVGRendererProps {
-  svgContent: string;
-}
-
-function SVGRenderer({ svgContent }: SVGRendererProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.innerHTML = svgContent;
-      const svgElement = containerRef.current.querySelector("svg");
-      if (svgElement) {
-        svgElement.setAttribute("width", "100%");
-        svgElement.setAttribute("height", "100%");
-      }
-    }
-  }, [svgContent]);
-
-  return <div ref={containerRef} />;
-}
-
 function SaveAsPngButton({
-  svgContent,
+  imageBlobUrl,
   scale,
   imageMetadata,
 }: {
-  svgContent: string;
+  imageBlobUrl: string;
   scale: number;
   imageMetadata: { width: number; height: number; name: string };
 }) {
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
   const { convertToPng, canvasProps } = useSvgConverter({
     canvas: canvasRef,
-    svgContent,
+    imageBlobUrl,
     scale,
     imageMetadata,
   });
@@ -138,7 +119,7 @@ import {
 import { FileDropzone } from "@/components/shared/file-dropzone";
 
 function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
-  const { rawContent, imageMetadata, handleFileUploadEvent, cancel } =
+  const { imageMetadata, imageBlobUrl, handleFileUploadEvent, cancel } =
     props.fileUploaderProps;
 
   const [scale, setScale] = useLocalStorage<Scale>("svgTool_scale", 1);
@@ -164,7 +145,13 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
       {/* Preview Section */}
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
-        <SVGRenderer svgContent={rawContent} />
+        <div>
+          <img
+            alt=""
+            src={imageBlobUrl ?? undefined}
+            className="h-full w-full"
+          ></img>
+        </div>
         <p className="text-lg font-medium text-white/80">
           {imageMetadata.name}
         </p>
@@ -207,7 +194,7 @@ function SVGToolCore(props: { fileUploaderProps: FileUploaderResult }) {
           Cancel
         </button>
         <SaveAsPngButton
-          svgContent={rawContent}
+          imageBlobUrl={imageBlobUrl ?? ""}
           scale={effectiveScale}
           imageMetadata={imageMetadata}
         />

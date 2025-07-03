@@ -1,62 +1,36 @@
-import { useCallback } from "react";
-import { type ChangeEvent, useState } from "react";
+import { useCallback, type ChangeEvent, useState, useEffect } from "react";
 import { useClipboardPaste } from "./use-clipboard-paste";
+import { useAsyncMemo } from "./use-async-memo";
 
-const parseSvgFile = (content: string, fileName: string) => {
-  const parser = new DOMParser();
-  const svgDoc = parser.parseFromString(content, "image/svg+xml");
-  const svgElement = svgDoc.documentElement;
-  const width = parseInt(svgElement.getAttribute("width") ?? "300");
-  const height = parseInt(svgElement.getAttribute("height") ?? "150");
-
-  // Convert SVG content to a data URL
-  const svgBlob = new Blob([content], { type: "image/svg+xml" });
-  const svgUrl = URL.createObjectURL(svgBlob);
-
-  return {
-    content: svgUrl,
-    metadata: {
-      width,
-      height,
-      name: fileName,
-    },
-  };
-};
-
-const parseImageFile = (
-  content: string,
-  fileName: string,
+const getImageDimensions = (
+  blobUrl: string,
 ): Promise<{
-  content: string;
-  metadata: { width: number; height: number; name: string };
+  width: number;
+  height: number;
 }> => {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       resolve({
-        content,
-        metadata: {
-          width: img.width,
-          height: img.height,
-          name: fileName,
-        },
+        width: img.naturalWidth,
+        height: img.naturalHeight,
       });
     };
-    img.src = content;
+    img.src = blobUrl;
   });
 };
 
 export type FileUploaderResult = {
-  /** The processed image content as a data URL (for regular images) or object URL (for SVGs) */
-  imageContent: string;
-  /** The raw file content as a string */
-  rawContent: string;
   /** Metadata about the uploaded image including dimensions and filename */
   imageMetadata: {
     width: number;
     height: number;
     name: string;
   } | null;
+  /** The image content as a Blob object */
+  imageBlob: Blob | null;
+  /** That Blob's object URL (not the actual content, just a reference) */
+  imageBlobUrl: string | null;
   /** Handler for file input change events */
   handleFileUpload: (file: File) => void;
   handleFileUploadEvent: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -67,60 +41,46 @@ export type FileUploaderResult = {
 /**
  * A hook for handling file uploads, particularly images and SVGs
  * @returns {FileUploaderResult} An object containing:
- * - imageContent: Use this as the src for an img tag
- * - rawContent: The raw file content as a string (useful for SVG tags)
+ * - imageBlobUrl: Use this as the src for an img tag
+ * - imageBlob: The raw file content as a Blob
  * - imageMetadata: Width, height, and name of the image
  * - handleFileUpload: Function to handle file input change events
  * - cancel: Function to reset the upload state
  */
 export const useFileUploader = (): FileUploaderResult => {
-  const [imageContent, setImageContent] = useState<string>("");
-  const [rawContent, setRawContent] = useState<string>("");
-  const [imageMetadata, setImageMetadata] = useState<{
-    width: number;
-    height: number;
-    name: string;
-  } | null>(null);
+  const [imageBlob, setImageBlob] = useState<File | null>(null);
 
-  const processFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const content = e.target?.result as string;
-      setRawContent(content);
+  const { imageBlobUrl, imageMetadata } = useAsyncMemo(
+    async () => {
+      if (!imageBlob) return { imageBlobUrl: null, imageMetadata: null };
+      const imageBlobUrl = URL.createObjectURL(imageBlob);
+      const dimensions = await getImageDimensions(imageBlobUrl);
+      return {
+        imageBlobUrl,
+        imageMetadata: { ...dimensions, name: imageBlob.name },
+      };
+    },
+    [imageBlob],
+    { imageBlobUrl: null, imageMetadata: null },
+  );
 
-      if (file.type === "image/svg+xml") {
-        const { content: svgContent, metadata } = parseSvgFile(
-          content,
-          file.name,
-        );
-        setImageContent(svgContent);
-        setImageMetadata(metadata);
-      } else {
-        const { content: imgContent, metadata } = await parseImageFile(
-          content,
-          file.name,
-        );
-        setImageContent(imgContent);
-        setImageMetadata(metadata);
-      }
-    };
-
-    if (file.type === "image/svg+xml") {
-      reader.readAsText(file);
-    } else {
-      reader.readAsDataURL(file);
-    }
-  };
+  // Clean up blob URLs when switching blobs
+  useEffect(
+    () => () => {
+      if (imageBlobUrl) URL.revokeObjectURL(imageBlobUrl);
+    },
+    [imageBlobUrl],
+  );
 
   const handleFileUploadEvent = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      processFile(file);
+      setImageBlob(file);
     }
   };
 
   const handleFilePaste = useCallback((file: File) => {
-    processFile(file);
+    setImageBlob(file);
   }, []);
 
   useClipboardPaste({
@@ -129,15 +89,14 @@ export const useFileUploader = (): FileUploaderResult => {
   });
 
   const cancel = () => {
-    setImageContent("");
-    setImageMetadata(null);
+    setImageBlob(null);
   };
 
   return {
-    imageContent,
-    rawContent,
     imageMetadata,
-    handleFileUpload: processFile,
+    imageBlob,
+    imageBlobUrl,
+    handleFileUpload: setImageBlob,
     handleFileUploadEvent,
     cancel,
   };

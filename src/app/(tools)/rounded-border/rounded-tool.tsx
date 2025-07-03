@@ -1,6 +1,6 @@
 "use client";
 import { usePlausible } from "next-plausible";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { UploadBox } from "@/components/shared/upload-box";
 import { OptionSelector } from "@/components/shared/option-selector";
@@ -17,36 +17,51 @@ type BackgroundOption = "white" | "black" | "transparent";
 
 function useImageConverter(props: {
   canvas: HTMLCanvasElement | null;
-  imageContent: string;
+  imageBlobUrl: string;
   radius: Radius;
   background: BackgroundOption;
   fileName?: string;
   imageMetadata: { width: number; height: number; name: string };
 }) {
-  const { width, height } = useMemo(() => {
-    return {
-      width: props.imageMetadata.width,
-      height: props.imageMetadata.height,
-    };
-  }, [props.imageMetadata]);
+  const { width, height } = props.imageMetadata;
+
+  // Store blob URL to clean it up later
+  const [usedCanvasBlobUrl, setUsedCanvasBlobUrl] = useState<string | null>(
+    null,
+  );
+  useEffect(
+    () => () => {
+      if (usedCanvasBlobUrl) URL.revokeObjectURL(usedCanvasBlobUrl);
+    },
+    [usedCanvasBlobUrl],
+  );
 
   const convertToPng = async () => {
     const ctx = props.canvas?.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
-    const saveImage = () => {
-      if (props.canvas) {
-        const dataURL = props.canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = dataURL;
-        const imageFileName = props.imageMetadata.name ?? "image_converted";
-        link.download = `${imageFileName.replace(/\..+$/, "")}.png`;
-        link.click();
-      }
+    const saveImage = async () => {
+      const canvasBlob = await new Promise<Blob>((resolve, reject) => {
+        if (props.canvas) {
+          props.canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else reject(new Error("Canvas blob could not be created"));
+          });
+        } else reject(new Error("Canvas not present"));
+      });
+      const canvasBlobUrl = URL.createObjectURL(canvasBlob);
+      setUsedCanvasBlobUrl(canvasBlobUrl);
+      const link = document.createElement("a");
+      link.href = canvasBlobUrl;
+      const imageFileName = props.imageMetadata.name ?? "image_converted";
+      link.download = `${imageFileName.replace(/\..+$/, "")}.png`;
+      link.click();
     };
 
     const img = new Image();
     img.onload = () => {
+      ctx.save();
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = props.background;
       ctx.fillRect(0, 0, width, height);
@@ -63,10 +78,11 @@ function useImageConverter(props: {
       ctx.closePath();
       ctx.clip();
       ctx.drawImage(img, 0, 0, width, height);
-      saveImage();
+      ctx.restore();
+      void saveImage();
     };
 
-    img.src = props.imageContent;
+    img.src = props.imageBlobUrl;
   };
 
   return {
@@ -76,26 +92,17 @@ function useImageConverter(props: {
 }
 
 interface ImageRendererProps {
-  imageContent: string;
+  imageBlobUrl: string;
   radius: Radius;
   background: BackgroundOption;
 }
 
 const ImageRenderer = ({
-  imageContent,
+  imageBlobUrl,
   radius,
   background,
 }: ImageRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      const imgElement = containerRef.current.querySelector("img");
-      if (imgElement) {
-        imgElement.style.borderRadius = `${radius}px`;
-      }
-    }
-  }, [imageContent, radius]);
 
   return (
     <div ref={containerRef} className="relative w-[500px]">
@@ -104,22 +111,27 @@ const ImageRenderer = ({
         style={{ backgroundColor: background, borderRadius: 0 }}
       />
       <img
-        src={imageContent}
+        src={imageBlobUrl}
         alt="Preview"
         className="relative rounded-lg"
-        style={{ width: "100%", height: "auto", objectFit: "contain" }}
+        style={{
+          width: "100%",
+          height: "auto",
+          objectFit: "contain",
+          borderRadius: `${radius}px`,
+        }}
       />
     </div>
   );
 };
 
 function SaveAsPngButton({
-  imageContent,
+  imageBlobUrl,
   radius,
   background,
   imageMetadata,
 }: {
-  imageContent: string;
+  imageBlobUrl: string;
   radius: Radius;
   background: BackgroundOption;
   imageMetadata: { width: number; height: number; name: string };
@@ -127,7 +139,7 @@ function SaveAsPngButton({
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
   const { convertToPng, canvasProps } = useImageConverter({
     canvas: canvasRef,
-    imageContent,
+    imageBlobUrl,
     radius,
     background,
     imageMetadata,
@@ -152,7 +164,7 @@ function SaveAsPngButton({
 }
 
 function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
-  const { imageContent, imageMetadata, handleFileUploadEvent, cancel } =
+  const { imageBlobUrl, imageMetadata, handleFileUploadEvent, cancel } =
     props.fileUploaderProps;
   const [radius, setRadius] = useLocalStorage<Radius>("roundedTool_radius", 2);
   const [isCustomRadius, setIsCustomRadius] = useState(false);
@@ -170,7 +182,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     }
   };
 
-  if (!imageMetadata) {
+  if (!imageMetadata || !imageBlobUrl) {
     return (
       <UploadBox
         title="Add rounded borders to your images. Quick and easy."
@@ -186,7 +198,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
     <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-6 p-6">
       <div className="flex w-full flex-col items-center gap-4 rounded-xl p-6">
         <ImageRenderer
-          imageContent={imageContent}
+          imageBlobUrl={imageBlobUrl}
           radius={radius}
           background={background}
         />
@@ -229,7 +241,7 @@ function RoundedToolCore(props: { fileUploaderProps: FileUploaderResult }) {
           Cancel
         </button>
         <SaveAsPngButton
-          imageContent={imageContent}
+          imageBlobUrl={imageBlobUrl}
           radius={radius}
           background={background}
           imageMetadata={imageMetadata}
